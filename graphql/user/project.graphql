@@ -1,0 +1,32 @@
+extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "查看当前项目信息"
+    userProject: Project @field(resolver: "ProjectQuery@show")
+}
+
+extend type Query @middleware(checks: ["api.auth.user"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "查看项目列表"
+    userProjects: [Project] @field(resolver: "ProjectQuery@index")
+}
+
+extend type Mutation @middleware(checks: ["api.auth.user"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "新建项目"
+    userCreateProject(data: ProjectInput): Project @field(resolver: "ProjectMutation@create")
+
+    "更新项目"
+    userUpdateProject(data: ProjectInput): Project @field(resolver: "ProjectMutation@update")
+}
+
+
+type Project {
+    id: ID
+    name: String
+    description: String
+    user_id: Int
+    user: User
+}
+
+input ProjectInput {
+    id: ID
+    name: String!
+    description: String
+}
