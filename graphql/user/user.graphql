@@ -1,0 +1,12 @@
+extend type Query @middleware(checks: ["api.auth.user"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "当前用户信息"
+    userMe: User @field(resolver: "UserQuery@me")
+
+    "用户退出"
+    userLogout: Boolean @field(resolver:"UserQuery@logout")
+}
+
+type User {
+    email: String,
+    name: String
+}

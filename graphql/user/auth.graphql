@@ -1,0 +1,16 @@
+extend type Query  @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "获取邮箱验证码"
+    userGetEmailCode(email: String!): Boolean  @field(resolver:"AuthQuery@getEmailCode")
+
+    "账号密码注册"
+    userRegister(email: String!, code: String!, password: String!): Boolean @field(resolver: "AuthQuery@register")
+
+    "账号密码登录"
+    userLogin(email: String!, password: String!): Token! @field(resolver: "AuthQuery@login")
+}
+
+type Token {
+    access_token: String!
+    token_type: String!
+    expires_in: Int!
+}
