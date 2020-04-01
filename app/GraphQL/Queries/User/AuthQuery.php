@@ -3,6 +3,7 @@
 namespace App\GraphQL\Queries\User;
 
 use App\Exceptions\GraphQLException;
+use App\Jobs\EmailJob;
 use App\Models\User;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Support\Facades\Cache;
@@ -24,9 +25,9 @@ class AuthQuery
         if (cache(self::VERIFY_CODE_CACHE_PREFIX . $email)) {
             throw new GraphQLException('请稍后重试');
         }
-        $code = '123456';
         try {
-            // todo 真实发送邮件验证码
+            $code = makePassword();
+            EmailJob::dispatch($code, $email, '注册验证码');
             cache()->put(self::VERIFY_CODE_CACHE_PREFIX . $email, $code, self::VERIFY_CODE_CACHE_TTL);
             return true;
         } catch (\Exception $exception) {
