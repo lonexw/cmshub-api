@@ -1,5 +1,7 @@
 <?php
 
+use GraphQL\Validator\Rules\DisableIntrospection;
+
 return [
 
     /*
@@ -17,12 +19,12 @@ return [
         /*
          * The URI the endpoint responds to, e.g. mydomain.com/graphql.
          */
-        'uri' => 'graphql',
+        'uri'        => '/graphql',
 
         /*
          * Lighthouse creates a named route for convenient URL generation and redirects.
          */
-        'name' => 'graphql',
+        'name'       => 'graphql',
 
         /*
          *
@@ -68,9 +70,9 @@ return [
     */
 
     'cache' => [
-        'enable' => env('LIGHTHOUSE_CACHE_ENABLE', env('APP_ENV') !== 'local'),
-        'key' => env('LIGHTHOUSE_CACHE_KEY', 'lighthouse-schema'),
-        'ttl' => env('LIGHTHOUSE_CACHE_TTL', null),
+        'enable' => env('LIGHTHOUSE_CACHE_ENABLE', env('APP_ENV') === 'production'),
+        'key'    => env('LIGHTHOUSE_CACHE_KEY', 'lighthouse-schema'),
+        'ttl'    => env('LIGHTHOUSE_CACHE_TTL', null),
     ],
 
     /*
@@ -85,14 +87,20 @@ return [
     */
 
     'namespaces' => [
-        'models' => ['App', 'App\\Models'],
-        'queries' => 'App\\GraphQL\\Queries',
-        'mutations' => 'App\\GraphQL\\Mutations',
+        'models'        => ['App', 'App\\Models'],
+        'queries'       => [
+            'App\\GraphQL\\Queries',
+            'App\\GraphQL\\Queries\\User'
+        ],
+        'mutations'     => 'App\\GraphQL\\Mutations',
         'subscriptions' => 'App\\GraphQL\\Subscriptions',
-        'interfaces' => 'App\\GraphQL\\Interfaces',
-        'unions' => 'App\\GraphQL\\Unions',
-        'scalars' => 'App\\GraphQL\\Scalars',
-        'directives' => ['App\\GraphQL\\Directives'],
+        'interfaces'    => 'App\\GraphQL\\Interfaces',
+        'unions'        => 'App\\GraphQL\\Unions',
+        'scalars'       => 'App\\GraphQL\\Scalars',
+        'directives'    => [
+            'App\\GraphQL\\Directives',
+            'MatrixLab\\LaravelAdvancedSearch\\Lighthouse\\Directives',
+        ],
     ],
 
     /*
@@ -106,9 +114,9 @@ return [
     */
 
     'security' => [
-        'max_query_complexity' => \GraphQL\Validator\Rules\QueryComplexity::DISABLED,
-        'max_query_depth' => \GraphQL\Validator\Rules\QueryDepth::DISABLED,
-        'disable_introspection' => \GraphQL\Validator\Rules\DisableIntrospection::DISABLED,
+        'max_query_complexity'  => \GraphQL\Validator\Rules\QueryComplexity::DISABLED,
+        'max_query_depth'       => \GraphQL\Validator\Rules\QueryDepth::DISABLED,
+        'disable_introspection' => env('APP_DEBUG', false) ? DisableIntrospection::DISABLED : DisableIntrospection::ENABLED,
     ],
 
     /*
@@ -140,6 +148,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | @orderBy input name
+    |--------------------------------------------------------------------------
+    |
+    | Set the name to use for the generated argument on the
+    | OrderByClause used for the @orderBy directive.
+    |
+    | DEPRECATED This setting will be removed in v5.
+    |
+    */
+
+    'orderBy' => 'field',
+
+    /*
+    |--------------------------------------------------------------------------
     | Debug
     |--------------------------------------------------------------------------
     |
@@ -162,7 +184,7 @@ return [
     */
 
     'error_handlers' => [
-        App\Exceptions\ErrorHandler::class,
+        \App\Exceptions\ErrorHandler::class
     ],
 
     /*
@@ -203,6 +225,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Batchload Relations
+    |--------------------------------------------------------------------------
+    |
+    | If set to true, relations marked with directives like @hasMany or @belongsTo
+    | will be optimized by combining the queries through the BatchLoader.
+    |
+    */
+
+    'batchload_relations' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | GraphQL Subscriptions
     |--------------------------------------------------------------------------
     |
@@ -222,23 +256,23 @@ return [
          *
          * Any Laravel supported cache driver options are available here.
          */
-        'storage' => env('LIGHTHOUSE_SUBSCRIPTION_STORAGE', 'redis'),
+        'storage'          => env('LIGHTHOUSE_SUBSCRIPTION_STORAGE', 'redis'),
 
         /*
          * Default subscription broadcaster.
          */
-        'broadcaster' => env('LIGHTHOUSE_BROADCASTER', 'pusher'),
+        'broadcaster'      => env('LIGHTHOUSE_BROADCASTER', 'pusher'),
 
         /*
          * Subscription broadcasting drivers with config options.
          */
-        'broadcasters' => [
-            'log' => [
+        'broadcasters'     => [
+            'log'    => [
                 'driver' => 'log',
             ],
             'pusher' => [
-                'driver' => 'pusher',
-                'routes' => \Nuwave\Lighthouse\Subscriptions\SubscriptionRouter::class.'@pusher',
+                'driver'     => 'pusher',
+                'routes'     => \Nuwave\Lighthouse\Subscriptions\SubscriptionRouter::class.'@pusher',
                 'connection' => 'pusher',
             ],
         ],

@@ -1,0 +1,55 @@
+extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "当前自定义表列表"
+    userCustoms(
+        paginator: PaginatorInput,
+        more: CustomPaginatorInput): [Custom!]! @getlist(resolver: "CustomQuery@index")
+
+    "查看指定自定义表"
+    userCustom: Custom @field(resolver: "CustomQuery@show")
+}
+
+extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "新建表"
+    userCreateCustom(data: CustomInput!): Custom @field(resolver: "CustomMutation@create")
+
+    "更新表"
+    userUpdateCustom(data: CustomInput!): Custom @field(resolver: "CustomMutation@update")
+
+    "删除表"
+    userDeleteCustom(id: Int!): Boolean @field(resolver: "CustomMutation@destroy")
+}
+
+
+type Custom {
+    id: ID
+    "表名"
+    name: String
+    "显示名称"
+    zh_name: String
+    "描述"
+    description: String
+    "关联项目ID"
+    project_id: Int
+    project: Project
+}
+
+input CustomPaginatorInput {
+    "表名"
+    name: String
+    "显示名称"
+    zh_name: String
+    "描述"
+    description: String
+    "关联项目ID"
+    project_id: Int
+}
+
+input CustomInput {
+    id: ID
+    "表名"
+    name: String
+    "显示名称"
+    zh_name: String
+    "描述"
+    description: String
+}

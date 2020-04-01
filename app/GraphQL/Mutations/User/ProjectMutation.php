@@ -3,8 +3,6 @@
 namespace App\GraphQL\Mutations\User;
 
 use App\Exceptions\GraphQLException;
-use App\Models\AdmissionInformation;
-use App\Models\Kindergarten;
 use App\Models\Project;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
