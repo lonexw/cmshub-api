@@ -9,7 +9,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Support\Facades\Validator;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
-class CustomMutation
+class FieldMutation
 {
     public function create($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
@@ -29,13 +29,12 @@ class CustomMutation
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        $custom = Custom::where('project_id', $projectId)
+        $field = Field::where('project_id', $projectId)
             ->find($args['id']);
-        if (!$custom) {
-            throw new GraphQLException("表不存在");
+        if (!$field) {
+            throw new GraphQLException("字段不存在");
         }
-        $custom->delete();
-        Field::where('custom_id', $custom->id)->delete();
+        $field->delete();
         return true;
     }
 
@@ -47,43 +46,63 @@ class CustomMutation
         $rules = [
             'name' => 'required|max:255',
             'zh_name' => 'required|max:255',
+            'custom_id' => 'required|integer',
+            'type' => 'required',
         ];
         $messages = [
             'name.required' => '请输入表名',
             'name.max' => '表名不能超过255字符',
             'zh_name.required' => '请输入表显示名称',
             'zh_name.max' => '表显示名称不能超过255字符',
+            'custom_id.required' => '请输入表ID',
+            'custom_id.integer' => '表ID必须是数字类型',
+            'type.required' => '请输入字段类型',
         ];
         $validator = Validator::make($args, $rules, $messages);
         if ($validator->fails()) {
             throw new GraphQLException($validator->errors()->first());
         }
+        $customId = $args['custom_id'];
+        $custom = Custom::where('project_id', $projectId)
+            ->find($customId);
+        if (!$custom) {
+            throw new GraphQLException("表不存在");
+        }
         $name = $args['name'];
         $zhName = $args['zh_name'];
+        $type = $args['type'];
         if ($id) {
-            $custom = Custom::where('project_id', $projectId)
+            $field = Field::where('project_id', $projectId)
+                ->where('custom_id', $customId)
                 ->find($id);
-            if (!$custom) {
-                throw new GraphQLException("表不存在");
+            if (!$field) {
+                throw new GraphQLException("字段不存在");
             }
         }
-        $query = Custom::where('project_id', $projectId)
+        $query = Field::where('project_id', $projectId)
+            ->where('custom_id', $customId)
             ->where('name', $name);
         if ($id) {
             $query->where('id', '<>', $id);
         }
-        $customFind = $query->first();
-        if ($customFind) {
-            throw new GraphQLException("表名已存在，请修改");
+        $fieldFind = $query->first();
+        if ($fieldFind) {
+            throw new GraphQLException("字段名已存在，请修改");
         }
-        if (!isset($custom)) {
-            $custom = new Custom();
-            $custom->project_id = $projectId;
+        if (!isset($field)) {
+            $field = new Field();
+            $field->project_id = $projectId;
+            $field->custom_id = $customId;
+            $field->type = $type;
         }
-        $custom->name = $name;
-        $custom->zh_name = $zhName;
-        $custom->description = arrayGet($args, 'description');
-        $custom->save();
-        return $custom;
+        $field->name = $name;
+        $field->zh_name = $zhName;
+        $field->description = arrayGet($args, 'description');
+        $field->is_required = arrayGet($args, 'is_required') ?? false;
+        $field->is_unique = arrayGet($args, 'is_unique') ?? false;
+        $field->is_multiple = arrayGet($args, 'is_multiple') ?? false;
+        $field->is_hide = arrayGet($args, 'is_hide') ?? false;
+        $field->save();
+        return $field;
     }
 }

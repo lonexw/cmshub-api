@@ -22,7 +22,7 @@ class CreateFieldsTable extends Migration
             $table->boolean('is_unique')->default(false)->comment('是否唯一 true 是 false 否');
             $table->boolean('is_multiple')->default(false)->comment('是否多值 true 是 false 否');
             $table->boolean('is_hide')->default(false)->comment('是否隐藏 true 是 false 否');
-            $table->string('type')->comment('字段类型 单行文本 sign_text 多行文本 multi_text 富文本 rich_text 资源 asset');
+            $table->string('type')->comment('字段类型 单行文本 single_text 多行文本 multi_text 富文本 rich_text 资源 asset');
             $table->integer('custom_id')->comment('关联自定义表ID');
             $table->integer('project_id')->comment('关联项目');
             $table->timestamps();

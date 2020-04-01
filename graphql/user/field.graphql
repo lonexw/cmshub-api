@@ -1,0 +1,97 @@
+extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "当前自定义表列表"
+    userFields(
+        paginator: PaginatorInput,
+        more: FieldPaginatorInput): [Field!]! @getlist(resolver: "FieldQuery@index")
+
+    "查看指定自定义表"
+    userField: Field @field(resolver: "FieldQuery@show")
+}
+
+extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "新建表字段"
+    userCreateField(data: FieldInput!): Field @field(resolver: "FieldMutation@create")
+
+    "更新表字段"
+    userUpdateField(data: FieldInput!): Field @field(resolver: "FieldMutation@update")
+
+    "删除表字段"
+    userDeleteField(id: Int!): Boolean @field(resolver: "FieldMutation@destroy")
+}
+
+
+type Field {
+    id: ID
+    "表名"
+    name: String
+    "显示名称"
+    zh_name: String
+    "描述"
+    description: String
+    "是否必填"
+    is_required: Boolean
+    "是否唯一"
+    is_unique: Boolean
+    "是否数组"
+    is_multiple: Boolean
+    "类型"
+    type: FieldType
+    "关联项目ID"
+    project_id: Int
+    project: Project
+    "关联表ID"
+    custom_id: Int
+    custom: Custom
+}
+
+enum FieldType {
+    "单行文本"
+    SINGLE_TEXT @enum(value: "single_text")
+    "多行文本"
+    MULTI_TEXT @enum(value: "multi_text")
+    "富文本"
+    RICH_TEXT @enum(value: "rich_text")
+    "附件"
+    ASSET @enum(value: "asset")
+}
+
+input FieldPaginatorInput {
+    "表名"
+    name: String
+    "显示名称"
+    zh_name: String
+    "描述"
+    description: String
+    "关联项目ID"
+    project_id: Int
+    "是否必填"
+    is_required: Boolean
+    "是否唯一"
+    is_unique: Boolean
+    "是否数组"
+    is_multiple: Boolean
+    "类型"
+    type: FieldType
+    "关联表ID"
+    custom_id: Int
+}
+
+input FieldInput {
+    id: ID
+    "表名"
+    name: String!
+    "显示名称"
+    zh_name: String!
+    "描述"
+    description: String
+    "是否必填"
+    is_required: Boolean
+    "是否唯一"
+    is_unique: Boolean
+    "是否数组"
+    is_multiple: Boolean
+    "类型"
+    type: FieldType!
+    "关联表ID"
+    custom_id: Int!
+}
