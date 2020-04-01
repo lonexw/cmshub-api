@@ -21,7 +21,7 @@ class CreateCustsTable extends Migration
             $table->integer('project_id')->comment('关联项目');
             $table->timestamps();
         });
-        \DB::statement("ALTER TABLE `projects` comment'用户自定义表'");
+        \DB::statement("ALTER TABLE `customs` comment'用户自定义表'");
     }
 
     /**

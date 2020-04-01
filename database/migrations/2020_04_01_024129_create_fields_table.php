@@ -27,7 +27,7 @@ class CreateFieldsTable extends Migration
             $table->integer('project_id')->comment('关联项目');
             $table->timestamps();
         });
-        \DB::statement("ALTER TABLE `projects` comment'用户自定义表字段'");
+        \DB::statement("ALTER TABLE `fields` comment'用户自定义表字段'");
     }
 
     /**
