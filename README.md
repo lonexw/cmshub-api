@@ -15,4 +15,6 @@ MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 ## 自定义表结构文档
+/graphql 目录需要可写入，字段调整后将会生成结构文件
+
 通道 http://接口服务器/graphql?Project-Id=1 来访问

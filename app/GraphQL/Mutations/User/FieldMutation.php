@@ -31,7 +31,8 @@ class FieldMutation
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        $field = Field::where('project_id', $projectId)
+        $field = Field::with('custom')
+            ->where('project_id', $projectId)
             ->find($args['id']);
         if (!$field) {
             throw new GraphQLException("字段不存在");
@@ -40,6 +41,7 @@ class FieldMutation
         Item::where('project_id', $projectId)
             ->where('custom_id', $field->custom_id)
             ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $field->name . '")')]);
+        $this->generateRoute($field->custom);
         return true;
     }
 
@@ -126,6 +128,13 @@ class FieldMutation
                 ->where('custom_id', $field->custom_id)
                 ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $field->name . '", "")' )]);
         }
+        $this->generateRoute($custom);
+        return $field;
+    }
+
+    protected function generateRoute($custom)
+    {
+        $projectId = $custom->project_id;
         $custDir = base_path('graphql/cust');
         if (!file_exists($custDir)) {
             mkdir($custDir);
@@ -153,7 +162,6 @@ type Mutation
 
 #import ' . $projectId . '/*.graphql';
         file_put_contents($schemaPath, $schemaContent);
-        return $field;
     }
 
     protected function routeContent($custom)
