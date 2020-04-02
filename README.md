@@ -13,3 +13,6 @@ MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=null
 MAIL_FROM_NAME="${APP_NAME}"
 ```
+
+## 自定义表结构文档
+通道 http://接口服务器/graphql?Project-Id=1 来访问

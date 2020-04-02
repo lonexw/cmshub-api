@@ -5,7 +5,7 @@ extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (fie
         more: CustomPaginatorInput): [Custom!]! @getlist(resolver: "CustomQuery@index")
 
     "查看指定自定义表"
-    userCustom: Custom @field(resolver: "CustomQuery@show")
+    userCustom(id: Int!): Custom @field(resolver: "CustomQuery@show")
 }
 
 extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
