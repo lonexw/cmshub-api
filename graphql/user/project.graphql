@@ -14,6 +14,9 @@ extend type Mutation @middleware(checks: ["api.auth.user"]) @namespace (field: "
 
     "更新项目"
     userUpdateProject(data: ProjectInput): Project @field(resolver: "ProjectMutation@update")
+
+    "删除项目"
+    userDeleteProject(id: Int!): Boolean @field(resolver: "ProjectMutation@destroy")
 }
 
 

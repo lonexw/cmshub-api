@@ -5,6 +5,7 @@ namespace App\GraphQL\Mutations\User;
 use App\Exceptions\GraphQLException;
 use App\Models\Custom;
 use App\Models\Field;
+use App\Services\SchemaService;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Support\Facades\Validator;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -32,8 +33,13 @@ class CustomMutation
         $custom = Custom::where('project_id', $projectId)
             ->find($args['id']);
         if (!$custom) {
-            throw new GraphQLException("表不存在");
+            throw new GraphQLException('表不存在');
         }
+        if ($custom->name == 'asset') {
+            throw new GraphQLException('系统表，无法删除');
+        }
+        $schemaService = new SchemaService();
+        $schemaService->deleteCustomRoute($custom);
         $custom->delete();
         Field::where('custom_id', $custom->id)->delete();
         return true;
