@@ -2,8 +2,10 @@
 
 namespace App\Exceptions;
 
+use Dotenv\Exception\ValidationException;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -46,6 +48,32 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        $message = $exception->getMessage() ?: '位置错误';
+
+        if ($exception instanceof \App\Exceptions\GraphQLException) {
+            if ($request->ajax() || $request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['errmsg' => $message, 'errcode' => $exception->getCode()]);
+            }
+        }
+
+        if ($exception instanceof \App\Exceptions\MyException) {
+            if ($request->ajax() || $request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['errmsg' => $message, 'errcode' => $exception->getCode()]);
+            }
+        }
+
+        if ($exception instanceof NotFoundHttpException) {
+            if ($request->ajax() || $request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['errmsg' => 'not found', 'errcode' => 404]);
+            }
+        }
+
+        if ($exception instanceof ValidationException) {
+            if ($request->ajax() || $request->wantsJson() || $request->is('api/*')) {
+                return response()->json(['errmsg' => $exception->errors(), 'errcode' => 422]);
+            }
+        }
+
         return parent::render($request, $exception);
     }
 }

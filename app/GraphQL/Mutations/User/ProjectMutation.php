@@ -61,6 +61,45 @@ class ProjectMutation
         $field->is_hide = false;
         $field->save();
 
+        $field = new Field();
+        $field->project_id = $project->id;
+        $field->custom_id = $custom->id;
+        $field->type = Field::TYPE_SINGLE_TEXT;
+        $field->name = 'is_system';
+        $field->zh_name = '是否系统';
+        $field->description = '增加文件url还是上传文件';
+        $field->is_required = false;
+        $field->is_unique = true;
+        $field->is_multiple = false;
+        $field->is_hide = false;
+        $field->save();
+
+        $field = new Field();
+        $field->project_id = $project->id;
+        $field->custom_id = $custom->id;
+        $field->type = Field::TYPE_SINGLE_TEXT;
+        $field->name = 'type';
+        $field->zh_name = '文件类型';
+        $field->description = '图片/视频/文件，记录文件类型';
+        $field->is_required = false;
+        $field->is_unique = true;
+        $field->is_multiple = false;
+        $field->is_hide = false;
+        $field->save();
+
+        $field = new Field();
+        $field->project_id = $project->id;
+        $field->custom_id = $custom->id;
+        $field->type = Field::TYPE_SINGLE_TEXT;
+        $field->name = 'file_size';
+        $field->zh_name = '文件大小';
+        $field->description = '便于之后统计文件容量';
+        $field->is_required = false;
+        $field->is_unique = true;
+        $field->is_multiple = false;
+        $field->is_hide = false;
+        $field->save();
+
         $schemaService = new SchemaService();
         $schemaService->generateRoute($custom);
         return $project;

@@ -13,6 +13,10 @@ use Illuminate\Http\Request;
 |
 */
 
+Route::middleware(['api.auth.user.project'])->namespace('Common')->group(function () {
+    Route::post('/upload-image', 'UploadController@image');
+});
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
