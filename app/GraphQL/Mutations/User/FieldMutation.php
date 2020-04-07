@@ -78,6 +78,9 @@ class FieldMutation
             throw new GraphQLException("表不存在");
         }
         $name = $args['name'];
+        if ($name == 'status') {
+            throw new GraphQLException('此字段是系统字段，请更改字段名');
+        }
         $zhName = $args['zh_name'];
         $type = $args['type'];
         $originName = '';

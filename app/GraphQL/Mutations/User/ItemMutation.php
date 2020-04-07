@@ -82,7 +82,8 @@ class ItemMutation
             }
             $content[$field->name] = $fieldValue;
         }
-
+        $status = arrayGet($args, 'status') ?? 0;
+        $item->status = $status;
         $item->content = $content;
         $item->save();
         foreach ($content as $field => $value) {

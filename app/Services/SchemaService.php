@@ -133,15 +133,18 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
                 }
             }
         }
+        $fieldContent = $fieldContent . '
+    "状态 0 草稿 1 发布"' . '
+    status: String';
 
         $typeContent = '
-type ' . $name;
+type ' . $name . ' {';
 
         if ($assetsField) {
             $typeContent .= $assetsField;
         }
 
-        $typeContent .= ' {
+        $typeContent .= '
     ' . $fieldContent . '
 }';
 
