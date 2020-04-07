@@ -25,6 +25,10 @@ class ItemQuery extends BaseQuery
                 if ($customId) {
                     $q->where('custom_id', $customId);
                 }
+                $status = $this->getInputArgs('status', Item::STATUS_PUBLISH);
+                if (isset($status)) {
+                    $q->where('status', $status);
+                }
             },
         ];
     }
@@ -52,14 +56,16 @@ class ItemQuery extends BaseQuery
                     $assetItem = Item::where('custom_id', $asset->id)
                         ->where('id', $content[$assetField->name])
                         ->first();
-                    foreach ($assetItem->content as $fieldItem => $valueItem) {
-                        $assetItem[$fieldItem] = $valueItem;
+                    if ($assetItem && $assetItem->content) {
+                        foreach ($assetItem->content as $fieldItem => $valueItem) {
+                            $assetItem[$fieldItem] = $valueItem;
+                        }
+                        $assetModel = $assetItem;
                     }
-                    $assetModel = $assetItem;
                 }
-
                 $item[$assetField->name . 'Asset'] = $assetModel;
             }
+            unset($item->content);
         }
         return $items;
     }
@@ -93,6 +99,7 @@ class ItemQuery extends BaseQuery
         foreach ($content as $field => $value) {
             $item[$field] = $value;
         }
+        unset($item->content);
         return $item;
     }
 }

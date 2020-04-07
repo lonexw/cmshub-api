@@ -8,6 +8,10 @@ class Item extends BaseModel
         'content' => 'array'
     ];
 
+    // 状态 0 草稿 1 发布
+    const STATUS_DRAFT = 0;
+    const STATUS_PUBLISH = 1;
+
     public function project()
     {
         return $this->belongsTo(Project::class);
