@@ -20,6 +20,11 @@ class UploadController extends Controller
     private function upload(Request $request)
     {
         $disk = \Storage::disk();
+        $isOss = false;
+        if (config('filesystems.disks.oss.access_key')) {
+            $disk = \Storage::disk('oss');
+            $isOss = true;
+        }
         $file = $request->file('file');
         if (!$file) {
             throw new GraphQLException('请上传文件');
@@ -29,7 +34,11 @@ class UploadController extends Controller
         $path = uniqid($user->id . '/' . $projectId . '/' . now()->format('Y-m-d') . '/') . '.' . $file->getClientOriginalExtension();
 
         if ($result = $disk->put($path, file_get_contents($file->getRealPath()))) {
-            $url = asset('upload/' . $path);
+            if ($isOss) {
+                $url = $disk->getUrl($path);
+            } else {
+                $url = asset('upload/' . $path);
+            }
             $asset = Custom::where('project_id', $projectId)->first();
             $item = new Item();
             $item->project_id = $projectId;
