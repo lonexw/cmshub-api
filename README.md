@@ -24,6 +24,8 @@ OSS_BUCKET=
 OSS_IS_CNAME=false
 ```
 ## 自定义表结构文档
-/graphql 目录需要可写入，字段调整后将会生成结构文件
+api域名/graphql 目录需要可写入，字段调整后将会生成结构文件
 
 通道 http://接口服务器/graphql?Project-Id=1 来访问
+## 上传文件
+api域名/api/upload-image 使用laravel的api接口，不使用graphql接口
