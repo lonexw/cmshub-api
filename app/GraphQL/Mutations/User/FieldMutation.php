@@ -42,7 +42,8 @@ class FieldMutation
         Item::where('project_id', $projectId)
             ->where('custom_id', $field->custom_id)
             ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $field->name . '")')]);
-        $this->generateRoute($field->custom);
+        $schemaService = new SchemaService();
+        $schemaService->generateRoute($field->custom);
         return true;
     }
 

@@ -114,16 +114,39 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
         $fieldContent = 'id: ID
     "表ID"
     custom_id: Int';
+        $assetsField = '';
         foreach ($fields as $field) {
             $fieldContent = $fieldContent . '
     "' . $field->zh_name . '"' . '
     ' . $field->name . ': String';
-        }
-        $content .= '
-type ' . $name . ' {
-    ' . $fieldContent . '
-}
 
+            if ($field->type == Field::TYPE_ASSET) {
+                $assetsField = '
+    "' . $field->zh_name . '对应附件模型"';
+                // 附件单独处理
+                if ($field->is_multiple) {
+                    $assetsField .= '
+    ' . $field->name . 'Asset: [Asset]';
+                } else {
+                    $assetsField .= '
+    ' . $field->name . 'Asset: Asset';
+                }
+            }
+        }
+
+        $typeContent = '
+type ' . $name;
+
+        if ($assetsField) {
+            $typeContent .= $assetsField;
+        }
+
+        $typeContent .= ' {
+    ' . $fieldContent . '
+}';
+
+        $content .= $typeContent;
+        $content .= '
 input ' . $name . 'PaginatorInput {
     ' . $fieldContent . '
 }

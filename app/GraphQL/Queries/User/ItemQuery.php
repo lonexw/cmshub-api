@@ -4,6 +4,8 @@
 namespace App\GraphQL\Queries\User;
 
 use App\GraphQL\BaseQuery;
+use App\Models\Custom;
+use App\Models\Field;
 use App\Models\Item;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,11 +33,32 @@ class ItemQuery extends BaseQuery
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        $items = Item::getList($this->getConditions($args), ['project', 'custom']);
+        $items = Item::getList($this->getConditions($args), ['project', 'custom.fields']);
+        $asset = Custom::where('project_id', $projectId)
+            ->where('name', 'asset')
+            ->first();
         foreach ($items as $item) {
+            $custom = $item->custom;
+            $fields = $custom->fields;
+            $assetField = $fields->where('type', Field::TYPE_ASSET)->first();
             $content = $item->content;
             foreach ($content as $field => $value) {
                 $item[$field] = $value;
+            }
+            // 判断是否附件，需要返回关联的附件表信息
+            if ($assetField) {
+                $assetModel = null;
+                if ($asset) {
+                    $assetItem = Item::where('custom_id', $asset->id)
+                        ->where('id', $content[$assetField->name])
+                        ->first();
+                    foreach ($assetItem->content as $fieldItem => $valueItem) {
+                        $assetItem[$fieldItem] = $valueItem;
+                    }
+                    $assetModel = $assetItem;
+                }
+
+                $item[$assetField->name . 'Asset'] = $assetModel;
             }
         }
         return $items;
@@ -46,6 +69,30 @@ class ItemQuery extends BaseQuery
         $projectId = $context->request->this_project_id;
         $item = Item::where('project_id', $projectId)
             ->find($args['id']);
-        return $item->content;
+        $asset = Custom::where('project_id', $projectId)
+            ->where('name', 'asset')
+            ->first();
+        $custom = $item->custom;
+        $fields = $custom->fields;
+        $assetField = $fields->where('type', Field::TYPE_ASSET)->first();
+        // 判断是否附件，需要返回关联的附件表信息
+        if ($assetField) {
+            $assetModel = null;
+            if ($asset) {
+                $assetItem = Item::where('custom_id', $asset->id)
+                    ->where('id', $item->content[$assetField->name])
+                    ->first();
+                foreach ($assetItem->content as $fieldItem => $valueItem) {
+                    $assetItem[$fieldItem] = $valueItem;
+                }
+                $assetModel = $assetItem;
+            }
+            $item[$assetField->name . 'Asset'] = $assetModel;
+        }
+        $content = $item->content;
+        foreach ($content as $field => $value) {
+            $item[$field] = $value;
+        }
+        return $item;
     }
 }

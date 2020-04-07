@@ -8,4 +8,9 @@ class Custom extends BaseModel
     {
         return $this->belongsTo(Project::class);
     }
+
+    public function fields()
+    {
+        return $this->hasMany(Field::class);
+    }
 }
