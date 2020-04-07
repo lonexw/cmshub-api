@@ -47,6 +47,7 @@ class UploadController extends Controller
                 'data'       => [
                     'url'        => $url,
                     'name'       => $file->getClientOriginalName(),
+                    'id'         => $item->id
                 ]
             ];
         } else {
