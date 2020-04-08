@@ -29,3 +29,9 @@ api域名/graphql 目录需要可写入，字段调整后将会生成结构文�
 通道 http://接口服务器/graphql?Project-Id=1 来访问
 ## 上传文件
 api域名/api/upload-image 使用laravel的api接口，不使用graphql接口
+
+## 命令行添加用户
+根据提示输入信息即可，邮箱必填，作为用户名使用
+```
+php artisan command:add_user
+```
