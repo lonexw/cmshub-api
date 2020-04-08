@@ -6,10 +6,12 @@ use App\Models\Field;
 
 class SchemaService
 {
+    protected $custPath = 'graphql/cust';
+
     public function generateRoute($custom)
     {
         $projectId = $custom->project_id;
-        $custDir = base_path('graphql/cust');
+        $custDir = base_path($this->custPath);
         if (!file_exists($custDir)) {
             mkdir($custDir);
         }
@@ -41,7 +43,7 @@ type Mutation
     public function deleteCustomRoute($custom)
     {
         $projectId = $custom->project_id;
-        $custDir = base_path('graphql/cust');
+        $custDir = base_path($this->custPath);
         $projectDir = $custDir . '/' . $projectId;
         $custPath = $projectDir . '/' . $custom->name . '.graphql';
         if (file_exists($custPath)) {
@@ -73,7 +75,7 @@ type Mutation
     public function deleteProjectRoute($project)
     {
         $projectId = $project->id;
-        $custDir = base_path('graphql/cust');
+        $custDir = base_path($this->custPath);
         $projectDir = $custDir . '/' . $projectId;
         if (file_exists($projectDir)) {
             $this->delDirAndFile($projectDir);
