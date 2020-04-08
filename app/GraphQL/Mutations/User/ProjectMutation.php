@@ -30,7 +30,8 @@ class ProjectMutation
         $project->save();
         $custom = new Custom();
         $custom->project_id = $project->id;
-        $custom->name = 'asset';
+        $custom->name = 'Asset';
+        $custom->plural_name = 'Assets';
         $custom->zh_name = '附件表';
         $custom->description = '存放图片、文件、视频等';
         $custom->save();

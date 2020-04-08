@@ -24,6 +24,8 @@ type Custom {
     id: ID
     "表名"
     name: String
+    "api复数名称"
+    plural_name: String
     "显示名称"
     zh_name: String
     "描述"
@@ -36,6 +38,8 @@ type Custom {
 input CustomPaginatorInput {
     "表名"
     name: String
+    "api复数名称"
+    plural_name: String
     "显示名称"
     zh_name: String
     "描述"
@@ -48,6 +52,8 @@ input CustomInput {
     id: ID
     "表名"
     name: String
+    "api复数名称"
+    plural_name: String
     "显示名称"
     zh_name: String
     "描述"

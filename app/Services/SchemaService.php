@@ -86,12 +86,13 @@ type Mutation
 
     protected function routeContent($custom)
     {
-        $name = ucwords($custom->name);
+        $name = $custom->name;
+        $pluralName = $custom->plural_name;
         $zhName = $custom->zh_name;
         $content = '
 extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\\\GraphQL\\\\Queries\\\\User") {
     "' . $zhName . '列表"
-    user' . $name . 's (
+    user' . $pluralName . ' (
         paginator: PaginatorInput,
         more: ' . $name . 'PaginatorInput): [' . $name . '!]! @getlist(resolver: "ItemQuery@index")
 

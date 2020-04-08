@@ -52,11 +52,14 @@ class CustomMutation
         $id = arrayGet($args, 'id');
         $rules = [
             'name' => 'required|max:255',
+            'plural_name' => 'required|max:255',
             'zh_name' => 'required|max:255',
         ];
         $messages = [
             'name.required' => '请输入表名',
             'name.max' => '表名不能超过255字符',
+            'plural_name.required' => '请输入api复数名称',
+            'plural_name.max' => 'api复数名称不能超过255字符',
             'zh_name.required' => '请输入表显示名称',
             'zh_name.max' => '表显示名称不能超过255字符',
         ];
@@ -66,6 +69,10 @@ class CustomMutation
         }
         $name = $args['name'];
         $zhName = $args['zh_name'];
+        $pluralName = arrayGet($args, 'plural_name');
+        if (strtolower($name) == strtolower($pluralName)) {
+            throw new GraphQLException("表名和api复数名不能重复");
+        }
         if ($id) {
             $custom = Custom::where('project_id', $projectId)
                 ->find($id);
@@ -87,6 +94,7 @@ class CustomMutation
             $custom->project_id = $projectId;
         }
         $custom->name = $name;
+        $custom->plural_name = $pluralName;
         $custom->zh_name = $zhName;
         $custom->description = arrayGet($args, 'description');
         $custom->save();

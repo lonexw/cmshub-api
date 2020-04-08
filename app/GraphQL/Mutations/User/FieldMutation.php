@@ -77,9 +77,10 @@ class FieldMutation
         if (!$custom) {
             throw new GraphQLException("表不存在");
         }
-        $systemFields = ['id', 'status', 'created_at', 'updated_at', 'custom_id', 'project_id', 'content'];
+        $systemFields = ['id', 'status', 'created_at', 'updated_at', 'custom_id', 'project_id',
+            'content', 'asset'];
         $name = $args['name'];
-        if (in_array($name, $systemFields)) {
+        if (in_array(strtolower($name), $systemFields)) {
             throw new GraphQLException('此字段是系统字段，请更改字段名');
         }
         $zhName = $args['zh_name'];
