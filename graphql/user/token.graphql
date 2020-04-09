@@ -1,0 +1,73 @@
+extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "当前token列表"
+    userTokens(
+        paginator: PaginatorInput,
+        more: TokenPaginatorInput): [AuthToken!]! @getlist(resolver: "TokenQuery@index")
+
+    "查看指定token"
+    userToken(id: Int!): AuthToken @field(resolver: "TokenQuery@show")
+}
+
+extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "新建token"
+    userCreateToken(data: TokenInput!): AuthToken @field(resolver: "TokenMutation@create")
+
+    "更新token"
+    userUpdateToken(data: TokenInput!): AuthToken @field(resolver: "TokenMutation@update")
+
+    "删除token"
+    userDeleteToken(id: Int!): Boolean @field(resolver: "TokenMutation@destroy")
+}
+
+type AuthToken {
+    id: ID
+    "token"
+    token: String
+    "关联的表ID"
+    custom_ids: [Int]
+    "关联的表"
+    customs: [Custom]
+    "权限"
+    scopes: [ScopeType]
+    "描述"
+    description: String
+    "关联项目ID"
+    project_id: Int
+    project: Project
+}
+
+enum ScopeType {
+    "增删改"
+    MUTATION @enum(value: "mutation")
+    "查询"
+    QUERY @enum(value: "query")
+    "完全公开"
+    OPEN @enum(value: "open")
+}
+
+input TokenPaginatorInput {
+    "token"
+    token: String
+    "关联的表ID"
+    custom_ids: [Int]
+    "权限"
+    scopes: [ScopeType]
+    "描述"
+    description: String
+    "关联项目ID"
+    project_id: Int
+}
+
+input TokenInput {
+    id: ID
+    "token"
+    token: String!
+    "关联的表ID"
+    custom_ids: [Int]!
+    "权限"
+    scopes: [ScopeType]!
+    "描述"
+    description: String
+    "关联项目ID"
+    project_id: Int
+}
