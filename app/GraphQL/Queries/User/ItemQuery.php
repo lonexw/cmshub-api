@@ -3,6 +3,7 @@
 
 namespace App\GraphQL\Queries\User;
 
+use App\Exceptions\GraphQLException;
 use App\GraphQL\BaseQuery;
 use App\Models\Custom;
 use App\Models\Field;
@@ -36,14 +37,22 @@ class ItemQuery extends BaseQuery
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
+        $userPluralName = $resolveInfo->fieldName;
+        $pluralName = substr($userPluralName, 4);
+        $custom = Custom::with('fields')
+            ->where('project_id', $projectId)
+            ->where('plural_name', $pluralName)
+            ->first();
+        if (!$custom) {
+            throw new GraphQLException("表结构不存在");
+        }
+        $fields = $custom->fields;
         $args['this_project_id'] = $projectId;
-        $items = Item::getList($this->getConditions($args), ['project', 'custom.fields']);
+        $items = Item::getList($this->getConditions($args));
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
         foreach ($items as $item) {
-            $custom = $item->custom;
-            $fields = $custom->fields;
             $assetField = $fields->where('type', Field::TYPE_ASSET)->first();
             $content = $item->content;
             foreach ($content as $field => $value) {
@@ -73,13 +82,22 @@ class ItemQuery extends BaseQuery
     public function show($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
+        $userName = $resolveInfo->fieldName;
+        $name = substr($userName, 4);
+        $custom = Custom::with('fields')
+            ->where('project_id', $projectId)
+            ->where('name', $name)
+            ->first();
+        if (!$custom) {
+            throw new GraphQLException("表结构不存在");
+        }
+        $fields = $custom->fields;
+
         $item = Item::where('project_id', $projectId)
             ->find($args['id']);
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
-        $custom = $item->custom;
-        $fields = $custom->fields;
         $assetField = $fields->where('type', Field::TYPE_ASSET)->first();
         // 判断是否附件，需要返回关联的附件表信息
         if ($assetField) {

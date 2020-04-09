@@ -3,6 +3,7 @@
 namespace App\GraphQL\Mutations\User;
 
 use App\Exceptions\GraphQLException;
+use App\Models\Custom;
 use App\Models\Field;
 use App\Models\Item;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -14,20 +15,30 @@ class ItemMutation
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        return $this->store($args);
+        return $this->store($args, $resolveInfo);
     }
 
     public function update($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        return $this->store($args);
+        return $this->store($args, $resolveInfo);
     }
 
     public function destroy($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
+        $userName = $resolveInfo->fieldName;
+        $name = substr($userName, 10);
+        $custom = Custom::with('fields')
+            ->where('project_id', $projectId)
+            ->where('name', $name)
+            ->first();
+        if (!$custom) {
+            throw new GraphQLException("表结构不存在");
+        }
+        // todo 根据路由名查询当前操作的哪张表，根据接口权限判断是否可以使用此接口
         $item = Item::where('project_id', $projectId)
             ->find($args['id']);
         if (!$item) {
@@ -37,12 +48,21 @@ class ItemMutation
         return true;
     }
 
-    public function store($args)
+    public function store($args, $resolveInfo)
     {
         $projectId = $args['this_project_id'];
         $args = $args['data'];
         $id = arrayGet($args, 'id');
-        $customId = $args['custom_id'];
+        $userName = $resolveInfo->fieldName;
+        $name = substr($userName, 10);
+        $custom = Custom::with('fields')
+            ->where('project_id', $projectId)
+            ->where('name', $name)
+            ->first();
+        if (!$custom) {
+            throw new GraphQLException("表结构不存在");
+        }
+        $customId = $custom->id;
         if ($id) {
             $item = Item::where('project_id', $projectId)
                 ->find($id);

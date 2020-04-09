@@ -114,9 +114,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
 }';
         $fields = Field::where('custom_id', $custom->id)
             ->get();
-        $fieldContent = 'id: ID
-    "表ID"
-    custom_id: Int';
+        $fieldContent = 'id: ID';
         $assetsField = '';
         foreach ($fields as $field) {
             $fieldContent = $fieldContent . '
