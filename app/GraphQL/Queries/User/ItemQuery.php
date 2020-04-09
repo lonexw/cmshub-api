@@ -8,6 +8,7 @@ use App\GraphQL\BaseQuery;
 use App\Models\Custom;
 use App\Models\Field;
 use App\Models\Item;
+use App\Models\Token;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Database\Eloquent\Builder;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -46,6 +47,7 @@ class ItemQuery extends BaseQuery
         if (!$custom) {
             throw new GraphQLException("表结构不存在");
         }
+        $this->hasPermission($context, $custom);
         $fields = $custom->fields;
         $args['this_project_id'] = $projectId;
         $items = Item::getList($this->getConditions($args));
@@ -91,6 +93,7 @@ class ItemQuery extends BaseQuery
         if (!$custom) {
             throw new GraphQLException("表结构不存在");
         }
+        $this->hasPermission($context, $custom);
         $fields = $custom->fields;
 
         $item = Item::where('project_id', $projectId)
@@ -119,5 +122,21 @@ class ItemQuery extends BaseQuery
         }
         unset($item->content);
         return $item;
+    }
+
+    function hasPermission($context, $custom)
+    {
+        $token = $context->request->token;
+        if (!$token) {
+            return;
+        }
+        $scopes = $token->scopes;
+        if (!(in_array(Token::SCOPE_OPEN, $scopes) || in_array(Token::SCOPE_QUERY, $scopes))) {
+            throw new GraphQLException("无此权限");
+        }
+        $customIds = $token->custom_ids;
+        if (!in_array($custom->id, $customIds)) {
+            throw new GraphQLException("无此权限");
+        }
     }
 }
