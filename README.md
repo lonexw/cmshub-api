@@ -27,6 +27,9 @@ OSS_IS_CNAME=false
 api域名/graphql 目录需要可写入，字段调整后将会生成结构文件
 
 通道 http://接口服务器/graphql?Project-Id=1 来访问
+
+接口权限通过token机制来访问，每个token可以对应多个自定义表，并且可以设置多个权限（query 查询/mutation 增删改/open 开放），
+在Header中传入token字段后接口会根据token权限来判断是否有权限操作
 ## 上传文件
 api域名/api/upload-image 使用laravel的api接口，不使用graphql接口
 
