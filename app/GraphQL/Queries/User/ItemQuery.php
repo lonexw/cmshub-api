@@ -110,8 +110,8 @@ class ItemQuery extends BaseQuery
             ->where('name', $field)
             ->first();
         if ($referenceField) {
-            $modelAll = null;
             if ($referenceField->is_multiple) {
+                $modelAll = [];
                 $referenceModels = Item::where('custom_id', $referenceField->reference_custom_id)
                     ->whereIn('id', $content[$referenceField->name])
                     ->get();
@@ -124,6 +124,7 @@ class ItemQuery extends BaseQuery
                     }
                 }
             } else {
+                $modelAll = null;
                 $referenceModel = Item::where('custom_id', $referenceField->reference_custom_id)
                     ->where('id', $content[$referenceField->name])
                     ->first();

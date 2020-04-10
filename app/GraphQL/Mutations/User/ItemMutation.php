@@ -98,7 +98,11 @@ class ItemMutation
             ->get();
         $content = [];
         foreach ($fields as $field) {
-            $fieldValue = arrayGet($args, $field->name) ?? '';
+            if ($field->is_multiple) {
+                $fieldValue = arrayGet($args, $field->name) ?? [];
+            } else {
+                $fieldValue = arrayGet($args, $field->name) ?? '';
+            }
             if ($field->is_required && !$fieldValue) {
                 throw new GraphQLException('请输入' . $field->zh_name);
             }
