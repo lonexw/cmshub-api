@@ -53,6 +53,8 @@ enum FieldType {
     RICH_TEXT @enum(value: "rich_text")
     "附件"
     ASSET @enum(value: "asset")
+    "关联模型"
+    REFERENCE @enum(value: "reference")
 }
 
 input FieldPaginatorInput {
