@@ -74,19 +74,36 @@ class ItemQuery extends BaseQuery
             ->first();
         // 判断是否附件，需要返回关联的附件表信息
         if ($assetField) {
-            $assetModel = null;
-            if ($asset) {
-                $assetItem = Item::where('custom_id', $asset->id)
-                    ->where('id', $content[$assetField->name])
-                    ->first();
-                if ($assetItem && $assetItem->content) {
-                    foreach ($assetItem->content as $fieldItem => $valueItem) {
-                        $assetItem[$fieldItem] = $valueItem;
+            if ($assetField->is_multiple) {
+                $modelAll = [];
+                if ($asset) {
+                    $assetItems = Item::where('custom_id', $asset->id)
+                        ->whereIn('id', $content[$assetField->name])
+                        ->get();
+                    foreach ($assetItems as $assetItem) {
+                        if ($assetItem && $assetItem->content) {
+                            foreach ($assetItem->content as $fieldItem => $valueItem) {
+                                $assetItem[$fieldItem] = $valueItem;
+                            }
+                            $modelAll[] = $assetItem;
+                        }
                     }
-                    $assetModel = $assetItem;
+                }
+            } else {
+                $modelAll = null;
+                if ($asset) {
+                    $assetItem = Item::where('custom_id', $asset->id)
+                        ->where('id', $content[$assetField->name])
+                        ->first();
+                    if ($assetItem && $assetItem->content) {
+                        foreach ($assetItem->content as $fieldItem => $valueItem) {
+                            $assetItem[$fieldItem] = $valueItem;
+                        }
+                        $modelAll = $assetItem;
+                    }
                 }
             }
-            $item[$assetField->name . Item::NAME_ASSET] = $assetModel;
+            $item[$assetField->name . Item::NAME_ASSET] = $modelAll;
         }
         // 判断是否为关联模型类型，是的需要返回对应模型
         $referenceField = $fields->where('type', Field::TYPE_REFERENCE)
@@ -142,24 +159,11 @@ class ItemQuery extends BaseQuery
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
-        $assetField = $fields->where('type', Field::TYPE_ASSET)->first();
-        // 判断是否附件，需要返回关联的附件表信息
-        if ($assetField) {
-            $assetModel = null;
-            if ($asset) {
-                $assetItem = Item::where('custom_id', $asset->id)
-                    ->where('id', $item->content[$assetField->name])
-                    ->first();
-                foreach ($assetItem->content as $fieldItem => $valueItem) {
-                    $assetItem[$fieldItem] = $valueItem;
-                }
-                $assetModel = $assetItem;
-            }
-            $item[$assetField->name . Item::NAME_ASSET] = $assetModel;
-        }
         $content = $item->content;
         foreach ($content as $field => $value) {
             $item[$field] = $value;
+            // 返回关联附件、模型
+            $this->withModel($fields, $field, $item, $asset);
         }
         unset($item->content);
         return $item;
