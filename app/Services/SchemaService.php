@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Custom;
 use App\Models\Field;
+use App\Models\Item;
 
 class SchemaService
 {
@@ -134,10 +135,10 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
                 // 附件单独处理
                 if ($field->is_multiple) {
                     $assetsField .= '
-    ' . $field->name . 'Asset: [Asset]';
+    ' . $field->name . 'Asset: [' . Item::NAME_ASSET . ']';
                 } else {
                     $assetsField .= '
-    ' . $field->name . 'Asset: Asset';
+    ' . $field->name . 'Asset: ' . Item::NAME_ASSET . '';
                 }
             } else if ($field->type == Field::TYPE_REFERENCE) {
                 $referenceCustom = Custom::find($field->reference_custom_id);
@@ -147,10 +148,10 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
     "' . $field->zh_name . '对应关联模型"';
                     if ($field->is_multiple) {
                         $referenceField .= '
-    ' . $field->name . 'Reference: [' . $referenceCustom->name . ']';
+    ' . $field->name . Item::NAME_REFERENCE . ': [' . $referenceCustom->name . ']';
                     } else {
                         $referenceField .= '
-    ' . $field->name . 'Reference: ' . $referenceCustom->name;
+    ' . $field->name . Item::NAME_REFERENCE . ': ' . $referenceCustom->name;
                     }
                 }
             }

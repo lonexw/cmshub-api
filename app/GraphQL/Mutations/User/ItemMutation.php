@@ -40,7 +40,7 @@ class ItemMutation
             throw new GraphQLException("表结构不存在");
         }
         $this->hasPermission($context, $custom);
-        // todo 根据路由名查询当前操作的哪张表，根据接口权限判断是否可以使用此接口
+        // 根据路由名查询当前操作的哪张表，根据接口权限判断是否可以使用此接口
         $item = Item::where('project_id', $projectId)
             ->find($args['id']);
         if (!$item) {

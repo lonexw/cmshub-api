@@ -35,6 +35,6 @@ class Field extends BaseModel
 
     public function referenceCustom()
     {
-        return $this->belongsToMany(Custom::class);
+        return $this->belongsTo(Custom::class);
     }
 }

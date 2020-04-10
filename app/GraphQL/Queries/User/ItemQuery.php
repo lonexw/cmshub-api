@@ -40,7 +40,7 @@ class ItemQuery extends BaseQuery
         $projectId = $context->request->this_project_id;
         $userPluralName = $resolveInfo->fieldName;
         $pluralName = substr($userPluralName, 4);
-        $custom = Custom::with('fields')
+        $custom = Custom::with('fields.referenceCustom')
             ->where('project_id', $projectId)
             ->where('plural_name', $pluralName)
             ->first();
@@ -49,36 +49,77 @@ class ItemQuery extends BaseQuery
         }
         $this->hasPermission($context, $custom);
         $fields = $custom->fields;
+        $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
         $items = Item::getList($this->getConditions($args));
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
         foreach ($items as $item) {
-            $assetField = $fields->where('type', Field::TYPE_ASSET)->first();
             $content = $item->content;
             foreach ($content as $field => $value) {
                 $item[$field] = $value;
-            }
-            // 判断是否附件，需要返回关联的附件表信息
-            if ($assetField) {
-                $assetModel = null;
-                if ($asset) {
-                    $assetItem = Item::where('custom_id', $asset->id)
-                        ->where('id', $content[$assetField->name])
-                        ->first();
-                    if ($assetItem && $assetItem->content) {
-                        foreach ($assetItem->content as $fieldItem => $valueItem) {
-                            $assetItem[$fieldItem] = $valueItem;
-                        }
-                        $assetModel = $assetItem;
-                    }
-                }
-                $item[$assetField->name . 'Asset'] = $assetModel;
+                $this->withModel($fields, $field, $item, $asset);
             }
             unset($item->content);
         }
         return $items;
+    }
+
+    function withModel($fields, $field, &$item, $asset)
+    {
+        $content = $item->content;
+        $assetField = $fields->where('type', Field::TYPE_ASSET)
+            ->where('name', $field)
+            ->first();
+        // 判断是否附件，需要返回关联的附件表信息
+        if ($assetField) {
+            $assetModel = null;
+            if ($asset) {
+                $assetItem = Item::where('custom_id', $asset->id)
+                    ->where('id', $content[$assetField->name])
+                    ->first();
+                if ($assetItem && $assetItem->content) {
+                    foreach ($assetItem->content as $fieldItem => $valueItem) {
+                        $assetItem[$fieldItem] = $valueItem;
+                    }
+                    $assetModel = $assetItem;
+                }
+            }
+            $item[$assetField->name . Item::NAME_ASSET] = $assetModel;
+        }
+        // 判断是否为关联模型类型，是的需要返回对应模型
+        $referenceField = $fields->where('type', Field::TYPE_REFERENCE)
+            ->where('name', $field)
+            ->first();
+        if ($referenceField) {
+            $modelAll = null;
+            if ($referenceField->is_multiple) {
+                $referenceModels = Item::where('custom_id', $referenceField->reference_custom_id)
+                    ->whereIn('id', $content[$referenceField->name])
+                    ->get();
+                foreach ($referenceModels as $referenceModel) {
+                    if ($referenceModel && $referenceModel->content) {
+                        foreach ($referenceModel->content as $fieldItem => $valueItem) {
+                            $referenceModel[$fieldItem] = $valueItem;
+                        }
+                        $modelAll[] = $referenceModel;
+                    }
+                }
+            } else {
+                $referenceModel = Item::where('custom_id', $referenceField->reference_custom_id)
+                    ->where('id', $content[$referenceField->name])
+                    ->first();
+                if ($referenceModel && $referenceModel->content) {
+                    foreach ($referenceModel->content as $fieldItem => $valueItem) {
+                        $referenceModel[$fieldItem] = $valueItem;
+                    }
+                    $modelAll = $referenceModel;
+                }
+            }
+
+            $item[$referenceField->name . Item::NAME_REFERENCE] = $modelAll;
+        }
     }
 
     public function show($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
@@ -114,7 +155,7 @@ class ItemQuery extends BaseQuery
                 }
                 $assetModel = $assetItem;
             }
-            $item[$assetField->name . 'Asset'] = $assetModel;
+            $item[$assetField->name . Item::NAME_ASSET] = $assetModel;
         }
         $content = $item->content;
         foreach ($content as $field => $value) {

@@ -207,6 +207,14 @@ class FieldMutation
             $fieldReference->is_multiple = arrayGet($referenceField, 'is_multiple') ?? false;
             $fieldReference->is_hide = false;
             $fieldReference->save();
+
+            $fieldReferenceContent = '""';
+            if ($fieldReference->is_multiple) {
+                $fieldReferenceContent = 'JSON_Array()';
+            }
+            Item::where('project_id', $projectId)
+                ->where('custom_id', $referenceCustomId)
+                ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $fieldReference->name . '", ' . $fieldReferenceContent . ')' )]);
         } else {
             $field->save();
         }
@@ -222,9 +230,13 @@ class FieldMutation
             }
 
         } else {
+            $fieldContent = '""';
+            if ($field->is_multiple) {
+                $fieldContent = 'JSON_Array()';
+            }
             Item::where('project_id', $projectId)
                 ->where('custom_id', $field->custom_id)
-                ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $field->name . '", "")' )]);
+                ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $field->name . '", ' . $fieldContent . ')' )]);
         }
         $schemaService = new SchemaService();
         $schemaService->generateRoute($custom);
