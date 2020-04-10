@@ -32,18 +32,50 @@ class FieldMutation
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        $field = Field::with('custom')
+        $field = Field::with('custom.referenceCustom')
             ->where('project_id', $projectId)
             ->find($args['id']);
         if (!$field) {
             throw new GraphQLException("字段不存在");
         }
+        // 如果是模型关联字段删除关联的表字段
+        if ($field->type == Field::TYPE_REFERENCE) {
+            if ($field->is_main) {
+                // 主表的要找到关联表，删除关联表字段
+                $oppositeField = Field::where('reference_field_id', $field->id)->first();
+                if ($oppositeField) {
+                    // 删除字段对应的内容
+                    Item::where('project_id', $projectId)
+                        ->where('custom_id', $oppositeField->custom_id)
+                        ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $oppositeField->name . '")')]);
+                    $oppositeField->delete();
+                }
+            } else {
+                // 关联表要找到主表
+                $mainField = Field::find($field->reference_field_id);
+                if ($mainField) {
+                    // 删除字段对应的内容
+                    Item::where('project_id', $projectId)
+                        ->where('custom_id', $mainField->custom_id)
+                        ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $mainField->name . '")')]);
+                    $mainField->delete();
+                }
+            }
+        }
+        // 删除字段
         $field->delete();
+        // 删除字段对应的内容
         Item::where('project_id', $projectId)
             ->where('custom_id', $field->custom_id)
             ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $field->name . '")')]);
         $schemaService = new SchemaService();
         $schemaService->generateRoute($field->custom);
+        $referenceCustom = $field->custom->referenceCostom;
+        if ($referenceCustom) {
+            // 更新关联模型表结构文件
+            $schemaService = new SchemaService();
+            $schemaService->generateRoute($referenceCustom);
+        }
         return true;
     }
 
@@ -59,10 +91,10 @@ class FieldMutation
             'type' => 'required',
         ];
         $messages = [
-            'name.required' => '请输入表名',
-            'name.max' => '表名不能超过255字符',
-            'zh_name.required' => '请输入表显示名称',
-            'zh_name.max' => '表显示名称不能超过255字符',
+            'name.required' => '请输入字段名',
+            'name.max' => '字段名不能超过255字符',
+            'zh_name.required' => '请输入字段显示名称',
+            'zh_name.max' => '字段显示名称不能超过255字符',
             'custom_id.required' => '请输入表ID',
             'custom_id.integer' => '表ID必须是数字类型',
             'type.required' => '请输入字段类型',
@@ -85,6 +117,42 @@ class FieldMutation
         }
         $zhName = $args['zh_name'];
         $type = $args['type'];
+        $referenceCustomId = arrayGet($args, 'reference_custom_id');
+        $referenceField = arrayGet($args, 'reference_field');
+        if ($type == Field::TYPE_REFERENCE) {
+            // 关联模型类型的字段需要判断是否输入反向关联的数据
+            if (!$referenceCustomId) {
+                throw new GraphQLException('请输入关联表ID');
+            }
+            $referenceCustom = Custom::where('project_id', $projectId)
+                ->find($referenceCustomId);
+            if (!$referenceCustom) {
+                throw new GraphQLException('关联表不存在');
+            }
+            if (!$referenceField) {
+                throw new GraphQLException('请输入反向关联字段信息');
+            }
+            $rules = [
+                'name' => 'required|max:255',
+                'zh_name' => 'required|max:255',
+            ];
+            $messages = [
+                'name.required' => '请输入反向关联字段名',
+                'name.max' => '反向关联字段名不能超过255字符',
+                'zh_name.required' => '请输入反向关联字段显示名称',
+                'zh_name.max' => '反向关联字段显示名称不能超过255字符',
+            ];
+            $validator = Validator::make($referenceField, $rules, $messages);
+            if ($validator->fails()) {
+                throw new GraphQLException($validator->errors()->first());
+            }
+            $referenceFieldFind = Field::where('name', arrayGet($referenceField, 'name'))
+                ->where('custom_id', $referenceCustomId)
+                ->first();
+            if ($referenceFieldFind) {
+                throw new GraphQLException('反向关联字段名称已存在');
+            }
+        }
         $originName = '';
         if ($id) {
             $field = Field::where('project_id', $projectId)
@@ -118,7 +186,38 @@ class FieldMutation
         $field->is_unique = arrayGet($args, 'is_unique') ?? false;
         $field->is_multiple = arrayGet($args, 'is_multiple') ?? false;
         $field->is_hide = arrayGet($args, 'is_hide') ?? false;
-        $field->save();
+        if ($type == Field::TYPE_REFERENCE && !$id) {
+            // 模型关联类型要保存关联的表ID
+            $field->is_main = Field::IS_MAIN_YES;
+            $field->reference_custom_id = $referenceCustomId;
+            $field->save();
+            // 模型关联要保存反向关联的字段信息
+            $fieldReference = new Field();
+            $field->is_main = Field::IS_MAIN_NO;
+            $fieldReference->project_id = $field->project_id;
+            $fieldReference->custom_id = $referenceCustomId;
+            $fieldReference->reference_custom_id = $field->custom_id;
+            $fieldReference->reference_field_id = $field->id;
+            $fieldReference->type = $field->type;
+            $fieldReference->name = arrayGet($referenceField, 'name');
+            $fieldReference->zh_name = arrayGet($referenceField, 'zh_name');
+            $fieldReference->description = arrayGet($referenceField, 'description');
+            $fieldReference->is_required = false;
+            $fieldReference->is_unique = false;
+            $fieldReference->is_multiple = arrayGet($referenceField, 'is_multiple') ?? false;
+            $fieldReference->is_hide = false;
+            $fieldReference->save();
+
+            $fieldReferenceContent = '""';
+            if ($fieldReference->is_multiple) {
+                $fieldReferenceContent = 'JSON_Array()';
+            }
+            Item::where('project_id', $projectId)
+                ->where('custom_id', $referenceCustomId)
+                ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $fieldReference->name . '", ' . $fieldReferenceContent . ')' )]);
+        } else {
+            $field->save();
+        }
         if ($id) {
             // 更改字段名后更改json中的字段名
             if ($originName != $field->name) {
@@ -131,12 +230,21 @@ class FieldMutation
             }
 
         } else {
+            $fieldContent = '""';
+            if ($field->is_multiple) {
+                $fieldContent = 'JSON_Array()';
+            }
             Item::where('project_id', $projectId)
                 ->where('custom_id', $field->custom_id)
-                ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $field->name . '", "")' )]);
+                ->update(['content' => \DB::raw('JSON_INSERT(`content`, "$.' . $field->name . '", ' . $fieldContent . ')' )]);
         }
         $schemaService = new SchemaService();
         $schemaService->generateRoute($custom);
+        if (isset($referenceCustom)) {
+            // 更新关联模型表结构文件
+            $schemaService = new SchemaService();
+            $schemaService->generateRoute($referenceCustom);
+        }
         return $field;
     }
 

@@ -8,6 +8,11 @@ class Item extends BaseModel
         'content' => 'array'
     ];
 
+    // 关联附件后缀名
+    const NAME_ASSET = 'Asset';
+    // 关联模型后缀名
+    const NAME_REFERENCE = 'Reference';
+
     // 状态 0 草稿 1 发布
     const STATUS_DRAFT = 0;
     const STATUS_PUBLISH = 1;
