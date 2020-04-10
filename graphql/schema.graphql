@@ -4,8 +4,22 @@ scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date
 "A date string with format `Y-m-d`, e.g. `2011-05-23`."
 scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
 
+#import user/*.graphql
+
 type Query
 
 type Mutation
 
-#import user/*.graphql
+extend type Query {
+    "获取阿里云sts授权(对接时候加auth)"
+    getAliyunOssSts: AliyunOssSts! @field(resolver:"CommonQuery@getAliyunOssSts")
+
+}
+
+type AliyunOssSts {
+    region: String!
+    access_key_id: String!
+    access_key_secret: String!
+    sts_token: String!
+    bucket: String!
+}
