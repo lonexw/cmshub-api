@@ -30,6 +30,11 @@ api域名/graphql 目录需要可写入，字段调整后将会生成结构文�
 
 接口权限通过token机制来访问，每个token可以对应多个自定义表，并且可以设置多个权限（query 查询/mutation 增删改/open 开放），
 在Header中传入token字段后接口会根据token权限来判断是否有权限操作
+## 模型关联，附件关联
+附件关联是字段name后+Asset，可查询对应的附件对象
+模型关联是字段name后+Reference，可查询对应的模型对象
+如字段name是banners，那么使用bannersReference可查询到关联模型的具体属性
+
 ## 上传文件
 api域名/api/upload-image 使用laravel的api接口，不使用graphql接口
 
