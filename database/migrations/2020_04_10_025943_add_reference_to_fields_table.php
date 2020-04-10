@@ -14,6 +14,7 @@ class AddReferenceToFieldsTable extends Migration
     public function up()
     {
         Schema::table('fields', function (Blueprint $table) {
+            $table->boolean('is_main')->default(false)->comment('模型关联是否主表字段');
             $table->integer('reference_custom_id')->default(0)->comment('模型关联表ID');
             $table->integer('reference_field_id')->default(0)->comment('模型关联字段ID');
         });
@@ -28,6 +29,8 @@ class AddReferenceToFieldsTable extends Migration
     {
         Schema::table('fields', function (Blueprint $table) {
             $table->dropColumn('reference_custom_id');
+            $table->dropColumn('reference_field_id');
+            $table->dropColumn('is_main');
         });
     }
 }

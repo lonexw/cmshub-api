@@ -4,6 +4,14 @@ namespace App\Models;
 
 class Field extends BaseModel
 {
+    protected $casts = [
+        'is_main' => 'bool'
+    ];
+
+    // 关联模型中是否主表字段
+    const IS_MAIN_YES = true;
+    const IS_MAIN_NO = false;
+
     // 单行文本
     const TYPE_SINGLE_TEXT = 'single_text';
     // 多行文本

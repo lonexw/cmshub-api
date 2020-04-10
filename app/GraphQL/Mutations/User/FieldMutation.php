@@ -38,7 +38,33 @@ class FieldMutation
         if (!$field) {
             throw new GraphQLException("字段不存在");
         }
+        // 如果是模型关联字段删除关联的表字段
+        if ($field->type == Field::TYPE_REFERENCE) {
+            if ($field->is_main) {
+                // 主表的要找到关联表，删除关联表字段
+                $mainField = Field::where('reference_field_id', $field->id)->first();
+                if ($mainField) {
+                    // 删除字段对应的内容
+                    Item::where('project_id', $projectId)
+                        ->where('custom_id', $mainField->custom_id)
+                        ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $mainField->name . '")')]);
+                    $mainField->delete();
+                }
+            } else {
+                // 关联表要找到主表
+                $oppositeField = Field::find($field->reference_field_id);
+                if ($oppositeField) {
+                    // 删除字段对应的内容
+                    Item::where('project_id', $projectId)
+                        ->where('custom_id', $oppositeField->custom_id)
+                        ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $oppositeField->name . '")')]);
+                    $oppositeField->delete();
+                }
+            }
+        }
+        // 删除字段
         $field->delete();
+        // 删除字段对应的内容
         Item::where('project_id', $projectId)
             ->where('custom_id', $field->custom_id)
             ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $field->name . '")')]);
@@ -156,10 +182,12 @@ class FieldMutation
         $field->is_hide = arrayGet($args, 'is_hide') ?? false;
         if ($type == Field::TYPE_REFERENCE && !$id) {
             // 模型关联类型要保存关联的表ID
+            $field->is_main = Field::IS_MAIN_YES;
             $field->reference_custom_id = $referenceCustomId;
             $field->save();
             // 模型关联要保存反向关联的字段信息
             $fieldReference = new Field();
+            $field->is_main = Field::IS_MAIN_NO;
             $fieldReference->project_id = $field->project_id;
             $fieldReference->custom_id = $referenceCustomId;
             $fieldReference->reference_custom_id = $field->custom_id;
