@@ -32,7 +32,7 @@ class FieldMutation
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        $field = Field::with('custom')
+        $field = Field::with('custom.referenceCustom')
             ->where('project_id', $projectId)
             ->find($args['id']);
         if (!$field) {
@@ -42,23 +42,23 @@ class FieldMutation
         if ($field->type == Field::TYPE_REFERENCE) {
             if ($field->is_main) {
                 // 主表的要找到关联表，删除关联表字段
-                $mainField = Field::where('reference_field_id', $field->id)->first();
-                if ($mainField) {
-                    // 删除字段对应的内容
-                    Item::where('project_id', $projectId)
-                        ->where('custom_id', $mainField->custom_id)
-                        ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $mainField->name . '")')]);
-                    $mainField->delete();
-                }
-            } else {
-                // 关联表要找到主表
-                $oppositeField = Field::find($field->reference_field_id);
+                $oppositeField = Field::where('reference_field_id', $field->id)->first();
                 if ($oppositeField) {
                     // 删除字段对应的内容
                     Item::where('project_id', $projectId)
                         ->where('custom_id', $oppositeField->custom_id)
                         ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $oppositeField->name . '")')]);
                     $oppositeField->delete();
+                }
+            } else {
+                // 关联表要找到主表
+                $mainField = Field::find($field->reference_field_id);
+                if ($mainField) {
+                    // 删除字段对应的内容
+                    Item::where('project_id', $projectId)
+                        ->where('custom_id', $mainField->custom_id)
+                        ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $mainField->name . '")')]);
+                    $mainField->delete();
                 }
             }
         }
@@ -70,6 +70,12 @@ class FieldMutation
             ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $field->name . '")')]);
         $schemaService = new SchemaService();
         $schemaService->generateRoute($field->custom);
+        $referenceCustom = $field->custom->referenceCostom;
+        if ($referenceCustom) {
+            // 更新关联模型表结构文件
+            $schemaService = new SchemaService();
+            $schemaService->generateRoute($referenceCustom);
+        }
         return true;
     }
 
@@ -222,6 +228,11 @@ class FieldMutation
         }
         $schemaService = new SchemaService();
         $schemaService->generateRoute($custom);
+        if (isset($referenceCustom)) {
+            // 更新关联模型表结构文件
+            $schemaService = new SchemaService();
+            $schemaService->generateRoute($referenceCustom);
+        }
         return $field;
     }
 

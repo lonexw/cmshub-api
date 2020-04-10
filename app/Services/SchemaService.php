@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Custom;
 use App\Models\Field;
 
 class SchemaService
@@ -117,9 +118,15 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
         $fieldContent = 'id: ID';
         $assetsField = '';
         foreach ($fields as $field) {
-            $fieldContent = $fieldContent . '
+            if ($field->is_multiple) {
+                $fieldContent = $fieldContent . '
+    "' . $field->zh_name . '"' . '
+    ' . $field->name . ': [String]';
+            } else {
+                $fieldContent = $fieldContent . '
     "' . $field->zh_name . '"' . '
     ' . $field->name . ': String';
+            }
 
             if ($field->type == Field::TYPE_ASSET) {
                 $assetsField = '
@@ -132,6 +139,20 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
                     $assetsField .= '
     ' . $field->name . 'Asset: Asset';
                 }
+            } else if ($field->type == Field::TYPE_REFERENCE) {
+                $referenceCustom = Custom::find($field->reference_custom_id);
+                if ($referenceCustom) {
+                    // 关联模型的类型
+                    $referenceField = '
+    "' . $field->zh_name . '对应关联模型"';
+                    if ($field->is_multiple) {
+                        $referenceField .= '
+    ' . $field->name . 'Reference: [' . $referenceCustom->name . ']';
+                    } else {
+                        $referenceField .= '
+    ' . $field->name . 'Reference: ' . $referenceCustom->name;
+                    }
+                }
             }
         }
         $fieldContent = $fieldContent . '
@@ -143,6 +164,10 @@ type ' . $name . ' {';
 
         if ($assetsField) {
             $typeContent .= $assetsField;
+        }
+
+        if (isset($referenceField)) {
+            $typeContent .= $referenceField;
         }
 
         $typeContent .= '
