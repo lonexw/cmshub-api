@@ -22,7 +22,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
 
 type Field {
     id: ID
-    "表名"
+    "字段名"
     name: String
     "显示名称"
     zh_name: String
@@ -42,6 +42,14 @@ type Field {
     "关联表ID"
     custom_id: Int
     custom: Custom
+    "模型关联表ID"
+    reference_custom_id: Int
+    "模型关联表"
+    reference_custom: Custom
+    "模型关联字段ID"
+    reference_field_id: Int
+    "模型关联字段"
+    reference_field: Field
 }
 
 enum FieldType {
@@ -58,7 +66,7 @@ enum FieldType {
 }
 
 input FieldPaginatorInput {
-    "表名"
+    "字段名"
     name: String
     "显示名称"
     zh_name: String
@@ -80,7 +88,7 @@ input FieldPaginatorInput {
 
 input FieldInput {
     id: ID
-    "表名"
+    "字段名"
     name: String!
     "显示名称"
     zh_name: String!
@@ -96,4 +104,19 @@ input FieldInput {
     type: FieldType!
     "关联表ID"
     custom_id: Int!
+    "模型关联表ID，类型为关联模型时必填"
+    reference_custom_id: Int
+    "反向关联字段信息"
+    reference_field: ReferenceFieldInput
+}
+
+input ReferenceFieldInput {
+    "字段名"
+    name: String!
+    "显示名称"
+    zh_name: String!
+    "描述"
+    description: String
+    "是否数组"
+    is_multiple: Boolean
 }

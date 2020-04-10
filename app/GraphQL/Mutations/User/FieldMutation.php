@@ -59,10 +59,10 @@ class FieldMutation
             'type' => 'required',
         ];
         $messages = [
-            'name.required' => '请输入表名',
-            'name.max' => '表名不能超过255字符',
-            'zh_name.required' => '请输入表显示名称',
-            'zh_name.max' => '表显示名称不能超过255字符',
+            'name.required' => '请输入字段名',
+            'name.max' => '字段名不能超过255字符',
+            'zh_name.required' => '请输入字段显示名称',
+            'zh_name.max' => '字段显示名称不能超过255字符',
             'custom_id.required' => '请输入表ID',
             'custom_id.integer' => '表ID必须是数字类型',
             'type.required' => '请输入字段类型',
@@ -85,6 +85,42 @@ class FieldMutation
         }
         $zhName = $args['zh_name'];
         $type = $args['type'];
+        $referenceCustomId = arrayGet($args, 'reference_custom_id');
+        $referenceField = arrayGet($args, 'reference_field');
+        if ($type == Field::TYPE_REFERENCE) {
+            // 关联模型类型的字段需要判断是否输入反向关联的数据
+            if (!$referenceCustomId) {
+                throw new GraphQLException('请输入关联表ID');
+            }
+            $referenceCustom = Custom::where('project_id', $projectId)
+                ->find($referenceCustomId);
+            if (!$referenceCustom) {
+                throw new GraphQLException('关联表不存在');
+            }
+            if (!$referenceField) {
+                throw new GraphQLException('请输入反向关联字段信息');
+            }
+            $rules = [
+                'name' => 'required|max:255',
+                'zh_name' => 'required|max:255',
+            ];
+            $messages = [
+                'name.required' => '请输入反向关联字段名',
+                'name.max' => '反向关联字段名不能超过255字符',
+                'zh_name.required' => '请输入反向关联字段显示名称',
+                'zh_name.max' => '反向关联字段显示名称不能超过255字符',
+            ];
+            $validator = Validator::make($referenceField, $rules, $messages);
+            if ($validator->fails()) {
+                throw new GraphQLException($validator->errors()->first());
+            }
+            $referenceFieldFind = Field::where('name', arrayGet($referenceField, 'name'))
+                ->where('custom_id', $referenceCustomId)
+                ->first();
+            if ($referenceFieldFind) {
+                throw new GraphQLException('反向关联字段名称已存在');
+            }
+        }
         $originName = '';
         if ($id) {
             $field = Field::where('project_id', $projectId)
@@ -118,7 +154,28 @@ class FieldMutation
         $field->is_unique = arrayGet($args, 'is_unique') ?? false;
         $field->is_multiple = arrayGet($args, 'is_multiple') ?? false;
         $field->is_hide = arrayGet($args, 'is_hide') ?? false;
-        $field->save();
+        if ($type == Field::TYPE_REFERENCE && !$id) {
+            // 模型关联类型要保存关联的表ID
+            $field->reference_custom_id = $referenceCustomId;
+            $field->save();
+            // 模型关联要保存反向关联的字段信息
+            $fieldReference = new Field();
+            $fieldReference->project_id = $field->project_id;
+            $fieldReference->custom_id = $referenceCustomId;
+            $fieldReference->reference_custom_id = $field->custom_id;
+            $fieldReference->reference_field_id = $field->id;
+            $fieldReference->type = $field->type;
+            $fieldReference->name = arrayGet($referenceField, 'name');
+            $fieldReference->zh_name = arrayGet($referenceField, 'zh_name');
+            $fieldReference->description = arrayGet($referenceField, 'description');
+            $fieldReference->is_required = false;
+            $fieldReference->is_unique = false;
+            $fieldReference->is_multiple = arrayGet($referenceField, 'is_multiple') ?? false;
+            $fieldReference->is_hide = false;
+            $fieldReference->save();
+        } else {
+            $field->save();
+        }
         if ($id) {
             // 更改字段名后更改json中的字段名
             if ($originName != $field->name) {
