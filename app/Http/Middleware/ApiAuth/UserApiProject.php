@@ -64,6 +64,7 @@ class UserApiProject extends BaseMiddleware
         if (! $user = auth('user')->user()) {
             $this->error('user not found', 401);
         }
+        $this->checkProject($request, $user);
         return $next($request);
     }
 
