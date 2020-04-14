@@ -27,7 +27,7 @@ class ItemQuery extends BaseQuery
                 if ($customId) {
                     $q->where('custom_id', $customId);
                 }
-                $status = $this->getInputArgs('status', Item::STATUS_PUBLISH);
+                $status = $this->getInputArgs('status', null);
                 if (isset($status)) {
                     $q->where('status', $status);
                 }
