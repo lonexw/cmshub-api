@@ -14,6 +14,10 @@ MAIL_FROM_ADDRESS=null
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 ### 配置阿里云oss参数
+提供两种上传oss方式，一种是前端直传阿里云，另一种是通过服务器接口上传
+
+1、通过服务器方式
+
 如果不配置参数，默认上传到本地服务器
 ```
 #阿里云oss
@@ -22,6 +26,18 @@ OSS_SECRET_KEY=
 OSS_ENDPOINT=
 OSS_BUCKET=
 OSS_IS_CNAME=false
+```
+
+2、通过前端直传方式，需配置
+
+```
+# 阿里云oss(直传)
+ALIYUN_OSS_ACCESS_KEY=
+ALIYUN_OSS_ACCESS_SECRET=
+ALIYUN_OSS_ROLE_ARN=
+ALIYUN_OSS_REGION_ID=
+ALIYUN_OSS_REGION=
+ALIYUN_OSS_BUCKET=
 ```
 ## 自定义表结构文档
 api域名/graphql 目录需要可写入，字段调整后将会生成结构文件
