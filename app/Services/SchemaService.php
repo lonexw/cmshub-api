@@ -160,7 +160,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
             }
         }
         $fieldContent = $fieldContent . '
-    "状态 0 草稿 1 发布"' . '
+    "状态 0 草稿 1 发布"
     status: String';
 
         $typeContent = '
@@ -169,6 +169,12 @@ type ' . $name . ' {';
         if ($assetsField) {
             $typeContent .= $assetsField;
         }
+
+        $typeContent .= '
+    "添加时间"
+    created_at: String
+    "修改时间"
+    updated_at: String';
 
         if (isset($referenceField)) {
             $typeContent .= $referenceField;
