@@ -135,4 +135,63 @@ class ItemMutation
         unset($item->content);
         return $item;
     }
+
+    public function batchInsert($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
+    {
+        $projectId = $context->request->this_project_id;
+        $data = $args['data'];
+        $id = 0;
+        $userName = $resolveInfo->fieldName;
+        $name = substr($userName, 15);
+        $custom = Custom::with('fields')
+            ->where('project_id', $projectId)
+            ->where('name', $name)
+            ->first();
+        if (!$custom) {
+            throw new GraphQLException("表结构不存在");
+        }
+        $this->hasPermission($context, $custom);
+        $customId = $custom->id;
+        foreach ($data as $datum) {
+            $item = new Item();
+            $item->project_id = $projectId;
+            $item->custom_id = $customId;
+            $fields = Field::where('custom_id', $customId)
+                ->get();
+            $content = [];
+            foreach ($fields as $field) {
+                if ($field->is_multiple) {
+                    $fieldValue = arrayGet($datum, $field->name) ?? [];
+                } else {
+                    $fieldValue = arrayGet($datum, $field->name) ?? '';
+                }
+                if ($field->is_required && !$fieldValue) {
+                    throw new GraphQLException('请输入' . $field->zh_name);
+                }
+                if ($field->is_unique) {
+                    if (!$fieldValue) {
+                        throw new GraphQLException('请输入' . $field->zh_name);
+                    }
+                    $itemQuery = Item::where('content->' . $field->name, $fieldValue)
+                        ->where('project_id', $projectId)
+                        ->where('custom_id', $customId);
+                    if ($id) {
+                        $itemQuery->where('id', '<>', $id);
+                    }
+                    $itemFind = $itemQuery->first();
+                    if ($itemFind) {
+                        if (!($id && $item->content[$field->name] == $fieldValue)) {
+                            throw new GraphQLException($field->zh_name . '已存在，请修改');
+                        }
+                    }
+                }
+                $content[$field->name] = $fieldValue;
+            }
+            $status = arrayGet($datum, 'status') ?? 0;
+            $item->status = $status;
+            $item->content = $content;
+            $item->save();
+        }
+        return true;
+    }
 }

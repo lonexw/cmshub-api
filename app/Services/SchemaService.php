@@ -107,6 +107,9 @@ extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (fie
 extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\\\GraphQL\\\\Mutations\\\\User") {
     "新增' . $zhName . '数据"
     userCreate' . $name . '(data: ' . $name . 'Input!): ' . $name . ' @field(resolver: "ItemMutation@create")
+    
+    "批量新增' . $zhName . '数据"
+    userCreateBatch' . $name . '(data: [' . $name . 'Input!]!): ' . $name . ' @field(resolver: "ItemMutation@batchInsert")
 
     "更新' . $zhName . '数据"
     userUpdate' . $name . '(data: ' . $name . 'Input!): ' . $name . ' @field(resolver: "ItemMutation@update")

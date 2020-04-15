@@ -57,7 +57,7 @@ class ProjectMutation
         $field->zh_name = '地址';
         $field->description = '资源地址';
         $field->is_required = false;
-        $field->is_unique = true;
+        $field->is_unique = false;
         $field->is_multiple = false;
         $field->is_hide = false;
         $field->save();
@@ -70,7 +70,7 @@ class ProjectMutation
         $field->zh_name = '是否系统';
         $field->description = '增加文件url还是上传文件';
         $field->is_required = false;
-        $field->is_unique = true;
+        $field->is_unique = false;
         $field->is_multiple = false;
         $field->is_hide = false;
         $field->save();
@@ -83,7 +83,7 @@ class ProjectMutation
         $field->zh_name = '文件类型';
         $field->description = '图片/视频/文件，记录文件类型';
         $field->is_required = false;
-        $field->is_unique = true;
+        $field->is_unique = false;
         $field->is_multiple = false;
         $field->is_hide = false;
         $field->save();
@@ -96,7 +96,7 @@ class ProjectMutation
         $field->zh_name = '文件大小';
         $field->description = '便于之后统计文件容量';
         $field->is_required = false;
-        $field->is_unique = true;
+        $field->is_unique = false;
         $field->is_multiple = false;
         $field->is_hide = false;
         $field->save();
