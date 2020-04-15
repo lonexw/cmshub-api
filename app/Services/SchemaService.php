@@ -109,7 +109,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
     userCreate' . $name . '(data: ' . $name . 'Input!): ' . $name . ' @field(resolver: "ItemMutation@create")
     
     "批量新增' . $zhName . '数据"
-    userCreateBatch' . $name . '(data: [' . $name . 'Input!]!): ' . $name . ' @field(resolver: "ItemMutation@batchInsert")
+    userCreateBatch' . $name . '(data: [' . $name . 'Input!]!): Boolean @field(resolver: "ItemMutation@batchInsert")
 
     "更新' . $zhName . '数据"
     userUpdate' . $name . '(data: ' . $name . 'Input!): ' . $name . ' @field(resolver: "ItemMutation@update")
