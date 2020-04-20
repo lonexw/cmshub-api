@@ -31,6 +31,10 @@ class ItemQuery extends BaseQuery
                 if (isset($status)) {
                     $q->where('status', $status);
                 }
+                $ids = $this->getInputArgs('ids', []);
+                if (isset($ids) && count($ids) > 0) {
+                    $q->whereIn('id', $ids);
+                }
             },
         ];
     }

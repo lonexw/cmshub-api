@@ -121,6 +121,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
             ->get();
         $fieldContent = 'id: ID';
         $assetsField = '';
+        $referenceField = '';
         foreach ($fields as $field) {
             if ($field->is_multiple) {
                 $fieldContent = $fieldContent . '
@@ -133,7 +134,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
             }
 
             if ($field->type == Field::TYPE_ASSET) {
-                $assetsField = '
+                $assetsField .= '
     "' . $field->zh_name . '对应附件模型"';
                 // 附件单独处理
                 if ($field->is_multiple) {
@@ -147,7 +148,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
                 $referenceCustom = Custom::find($field->reference_custom_id);
                 if ($referenceCustom) {
                     // 关联模型的类型
-                    $referenceField = '
+                    $referenceField .= '
     "' . $field->zh_name . '对应关联模型"';
                     if ($field->is_multiple) {
                         $referenceField .= '
@@ -187,6 +188,8 @@ type ' . $name . ' {';
         $content .= $typeContent;
         $content .= '
 input ' . $name . 'PaginatorInput {
+    "id数组"
+    ids: [ID],
     ' . $fieldContent . '
 }
 
