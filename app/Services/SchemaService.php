@@ -189,7 +189,11 @@ type ' . $name . ' {';
         $content .= '
 input ' . $name . 'PaginatorInput {
     "id数组"
-    ids: [ID],
+    ids: [ID]
+    "开始时间"
+    begin_at: DateTime
+    "结束时间"
+    end_at: DateTime
     ' . $fieldContent . '
 }
 

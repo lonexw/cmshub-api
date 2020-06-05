@@ -35,6 +35,14 @@ class ItemQuery extends BaseQuery
                 if (isset($ids) && count($ids) > 0) {
                     $q->whereIn('id', $ids);
                 }
+                $beginAt = $this->getInputArgs('begin_at', null);
+                if (isset($beginAt)) {
+                    $q->where('created_at', '>=', $beginAt);
+                }
+                $endAt = $this->getInputArgs('end_at', null);
+                if (isset($endAt)) {
+                    $q->where('created_at', '<=', $endAt);
+                }
             },
         ];
     }

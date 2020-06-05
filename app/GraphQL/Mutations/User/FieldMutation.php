@@ -32,7 +32,7 @@ class FieldMutation
     {
         $projectId = $context->request->this_project_id;
         $args['this_project_id'] = $projectId;
-        $field = Field::with('custom.referenceCustom')
+        $field = Field::with('custom', 'referenceCustom')
             ->where('project_id', $projectId)
             ->find($args['id']);
         if (!$field) {
@@ -70,7 +70,7 @@ class FieldMutation
             ->update(['content' => DB::raw('JSON_REMOVE(content, "$.' . $field->name . '")')]);
         $schemaService = new SchemaService();
         $schemaService->generateRoute($field->custom);
-        $referenceCustom = $field->custom->referenceCostom;
+        $referenceCustom = $field->referenceCostom;
         if ($referenceCustom) {
             // 更新关联模型表结构文件
             $schemaService = new SchemaService();
