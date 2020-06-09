@@ -120,6 +120,7 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
         $fields = Field::where('custom_id', $custom->id)
             ->get();
         $fieldContent = 'id: ID';
+        $referenceFieldIds = '';
         $assetsField = '';
         $referenceField = '';
         foreach ($fields as $field) {
@@ -144,6 +145,9 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
                     $assetsField .= '
     ' . $field->name . 'Asset: ' . Item::NAME_ASSET . '';
                 }
+                $referenceFieldIds = $referenceFieldIds . '
+    "' . $field->zh_name . '批量查询"' . '
+    ' . $field->name . 'Ids: [String]';
             } else if ($field->type == Field::TYPE_REFERENCE) {
                 $referenceCustom = Custom::find($field->reference_custom_id);
                 if ($referenceCustom) {
@@ -158,6 +162,9 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
     ' . $field->name . Item::NAME_REFERENCE . ': ' . $referenceCustom->name;
                     }
                 }
+                $referenceFieldIds = $referenceFieldIds . '
+    "' . $field->zh_name . '批量查询"' . '
+    ' . $field->name . 'Ids: [String]';
             }
         }
         $fieldContent = $fieldContent . '
@@ -195,6 +202,7 @@ input ' . $name . 'PaginatorInput {
     "结束时间"
     end_at: DateTime
     ' . $fieldContent . '
+    ' . $referenceFieldIds . '
 }
 
 input ' . $name . 'Input {

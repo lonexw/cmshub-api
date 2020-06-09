@@ -50,12 +50,34 @@ class ItemQuery extends BaseQuery
         };
         $other = function (Builder $q) {
             $args = $this->getInputArgs();
+            $thisFields = $args['this_fields'];
             foreach ($args as $arg => $value) {
                 if ($arg != 'this_project_id' && $arg != 'custom_id' && $arg != 'status'
                     && $arg != 'ids' && $arg != 'id' && $arg != 'begin_at'
-                    && $arg != 'end_at' && $arg != 'directive') {
-                    // 如果是要查询字段，使用json_contains查
-                    $q->where('content->' . $arg, 'like', '%' . $value . '%');
+                    && $arg != 'end_at' && $arg != 'directive' && $arg != 'this_fields') {
+                    $isId = false;
+                    $needle = 'Ids';
+                    $temp = explode($needle, $arg);
+                    if(count($temp) > 1){
+                        $field = $temp[0];
+                    } else {
+                        $field = $arg;
+                    }
+                    if ($thisFields && $item = $thisFields->where('name', $field)->first()) {
+                        if ($item->type == Field::TYPE_ASSET || $item->type == Field::TYPE_REFERENCE) {
+                            $isId = true;
+                        }
+                    }
+                    if ($isId) {
+                        if (count($temp) > 1) {
+                            $q->whereIn('content->' . $field, $value);
+                        } else {
+                            $q->where('content->' . $field, $value);
+                        }
+                    } else {
+                        // 如果是要查询字段
+                        $q->where('content->' . $field, 'like', '%' . $value . '%');
+                    }
                 }
             }
         };
@@ -79,6 +101,7 @@ class ItemQuery extends BaseQuery
         $fields = $custom->fields;
         $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
+        $args['this_fields'] = $custom->fields;
         $items = Item::getList($this->getConditions($args));
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
