@@ -17,38 +17,50 @@ class ItemQuery extends BaseQuery
 {
     protected function wheres()
     {
-        return [
-            function (Builder $q) {
-                $projectId = $this->getInputArgs('this_project_id');
-                if ($projectId) {
-                    $q->where('project_id', $projectId);
+        $wheres = [];
+        $wheres[] = function (Builder $q) {
+            $projectId = $this->getInputArgs('this_project_id');
+            if ($projectId) {
+                $q->where('project_id', $projectId);
+            }
+            $customId = $this->getInputArgs('custom_id');
+            if ($customId) {
+                $q->where('custom_id', $customId);
+            }
+            $status = $this->getInputArgs('status', null);
+            if (isset($status)) {
+                $q->where('status', $status);
+            }
+            $ids = $this->getInputArgs('ids', []);
+            if (isset($ids) && count($ids) > 0) {
+                $q->whereIn('id', $ids);
+            }
+            $id = $this->getInputArgs('id');
+            if ($id) {
+                $q->where('id', $id);
+            }
+            $beginAt = $this->getInputArgs('begin_at', null);
+            if (isset($beginAt)) {
+                $q->where('created_at', '>=', $beginAt);
+            }
+            $endAt = $this->getInputArgs('end_at', null);
+            if (isset($endAt)) {
+                $q->where('created_at', '<=', $endAt);
+            }
+        };
+        $other = function (Builder $q) {
+            $args = $this->getInputArgs();
+            foreach ($args as $arg => $value) {
+                if ($arg != 'this_project_id' && $arg != 'custom_id' && $arg != 'status'
+                    && $arg != 'ids' && $arg != 'id' && $arg != 'begin_at'
+                    && $arg != 'end_at' && $arg != 'directive') {
+                    // 如果是要查询字段，使用json_contains查
+                    $q->where('content->' . $arg, 'like', '%' . $value . '%');
                 }
-                $customId = $this->getInputArgs('custom_id');
-                if ($customId) {
-                    $q->where('custom_id', $customId);
-                }
-                $status = $this->getInputArgs('status', null);
-                if (isset($status)) {
-                    $q->where('status', $status);
-                }
-                $ids = $this->getInputArgs('ids', []);
-                if (isset($ids) && count($ids) > 0) {
-                    $q->whereIn('id', $ids);
-                }
-                $id = $this->getInputArgs('id');
-                if ($id) {
-                    $q->where('id', $id);
-                }
-                $beginAt = $this->getInputArgs('begin_at', null);
-                if (isset($beginAt)) {
-                    $q->where('created_at', '>=', $beginAt);
-                }
-                $endAt = $this->getInputArgs('end_at', null);
-                if (isset($endAt)) {
-                    $q->where('created_at', '<=', $endAt);
-                }
-            },
-        ];
+            }
+        };
+        $wheres[] = $other;
+        return $wheres;
     }
 
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
