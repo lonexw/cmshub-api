@@ -116,6 +116,9 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
 
     "删除' . $zhName . '数据"
     userDelete' . $name . '(id: Int!): Boolean @field(resolver: "ItemMutation@destroy")
+    
+    "批量删除' . $zhName . '数据"
+    userDeleteBatch' . $name . '(ids: [Int]!): Boolean @field(resolver: "ItemMutation@destroyBatch")
 }';
         $fields = Field::where('custom_id', $custom->id)
             ->get();

@@ -50,6 +50,27 @@ class ItemMutation
         return true;
     }
 
+    public function destroyBatch($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
+    {
+        $projectId = $context->request->this_project_id;
+        $args['this_project_id'] = $projectId;
+        $userName = $resolveInfo->fieldName;
+        $name = substr($userName, 15);
+        $custom = Custom::with('fields')
+            ->where('project_id', $projectId)
+            ->where('name', $name)
+            ->first();
+        if (!$custom) {
+            throw new GraphQLException("表结构不存在");
+        }
+        $this->hasPermission($context, $custom);
+        // 根据路由名查询当前操作的哪张表，根据接口权限判断是否可以使用此接口
+        Item::where('project_id', $projectId)
+            ->whereIn('id', $args['ids'])
+            ->delete();
+        return true;
+    }
+
     function hasPermission($context, $custom)
     {
         $token = $context->request->token;
