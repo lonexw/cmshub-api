@@ -70,7 +70,7 @@ return [
     */
 
     'cache' => [
-        'enable' => env('LIGHTHOUSE_CACHE_ENABLE', env('APP_ENV') === 'production'),
+        'enable' => env('LIGHTHOUSE_CACHE_ENABLE', false),
         'key'    => env('LIGHTHOUSE_CACHE_KEY', 'lighthouse-schema'),
         'ttl'    => env('LIGHTHOUSE_CACHE_TTL', null),
     ],
