@@ -14,14 +14,14 @@ class AddTokenCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'command:add_token';
+    protected $signature = 'command:add_token {--scope=query}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = '添加token';
+    protected $description = '添加token; query 仅查看 mutation 仅变更 open 查看和变更';
 
     /**
      * Create a new command instance.
@@ -61,7 +61,11 @@ class AddTokenCommand extends Command
             return;
         }
         $description = $this->ask('请输入token描述(可不填)');
-        $scopes = ['query'];
+        $scope = $this->option('scope');
+        if (!$scope) {
+            $scope = 'query';
+        }
+        $scopes = [$scope];
         $tokenStr = (string)$projectId . (string)time();
         $token = new Token();
         $token->project_id = $projectId;
