@@ -6,8 +6,22 @@ extend type Query @middleware(checks: ["api.auth.user"]) @namespace (field: "App
     userLogout: Boolean @field(resolver:"UserQuery@logout")
 }
 
+extend type Mutation @middleware(checks: ["api.auth.user"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "修改密码"
+    userUpdatePwd(data: UpdatePwdInput! @spread): Boolean @field(resolver: "UserMutation@updatePwd")
+}
+
 type User {
     id: ID,
     email: String,
     name: String
+}
+
+input UpdatePwdInput {
+    "原密码"
+    old_password: String!
+    "新密码"
+    password: String!
+    "确认密码"
+    password_confirmation: String!
 }
