@@ -22,14 +22,22 @@ extend type Mutation @middleware(checks: ["api.auth.user"]) @namespace (field: "
 
 type Project {
     id: ID
+    "项目名称"
     name: String
+    "项目描述"
     description: String
+    "logo"
+    url: String
     user_id: Int
     user: User
 }
 
 input ProjectInput {
     id: ID
+    "项目名称"
     name: String!
+    "项目描述"
     description: String
+    "logo"
+    url: String
 }

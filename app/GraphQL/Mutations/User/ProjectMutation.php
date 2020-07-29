@@ -17,6 +17,7 @@ class ProjectMutation
         $args = $args['data'];
         $user = auth('user')->user();
         $name = arrayGet($args, 'name');
+        $url = array_get($args, 'url');
         $project = Project::where('name', $name)
             ->where('user_id', $user->id)
             ->first();
@@ -26,6 +27,7 @@ class ProjectMutation
         $project = new Project();
         $project->name = $name;
         $project->user_id = $user->id;
+        $project->url = $url;
         $project->description = arrayGet($args, 'description') ?? '';
         $project->save();
         $custom = new Custom();
@@ -126,6 +128,7 @@ class ProjectMutation
         if ($project) {
             throw new GraphQLException("项目名称不能重复");
         }
+        $projectFind->url = array_get($args, 'url');
         $projectFind->name = $name;
         $projectFind->description = arrayGet($args, 'description') ?? '';
         $projectFind->save();
