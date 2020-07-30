@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-class Project extends BaseModel
+class Category extends BaseModel
 {
-    public function user()
+    public function project()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Project::class);
     }
 
     public function customs()

@@ -30,6 +30,8 @@ type Custom {
     zh_name: String
     "描述"
     description: String
+    "分类ID"
+    category_id: Int
     "关联项目ID"
     project_id: Int
     project: Project
@@ -58,4 +60,6 @@ input CustomInput {
     zh_name: String
     "描述"
     description: String
+    "分类ID"
+    category_id: Int!
 }

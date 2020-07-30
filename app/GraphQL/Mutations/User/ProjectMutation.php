@@ -103,6 +103,12 @@ class ProjectMutation
         $field->is_hide = false;
         $field->save();
 
+        // 添加项目表结构分类
+        $category = new \App\Models\Category();
+        $category->project_id = $project->id;
+        $category->title = '默认';
+        $category->save();
+
         $schemaService = new SchemaService();
         $schemaService->generateRoute($custom);
         return $project;

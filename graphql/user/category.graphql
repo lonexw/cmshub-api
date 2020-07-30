@@ -1,0 +1,29 @@
+extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "当前项目的表结构分类列表"
+    userCategories: [Category!]! @getlist(resolver: "CategoryQuery@index")
+
+    "查看指定分类表"
+    userCategory(id: Int!): Category @field(resolver: "CategoryQuery@show")
+}
+
+extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "新建表分类"
+    userCreateCategory(data: CategoryInput!): Category @field(resolver: "CategoryMutation@create")
+
+    "更新表分类"
+    userUpdateCategory(data: CategoryInput!): Category @field(resolver: "CategoryMutation@update")
+}
+
+type Category {
+    id: ID
+    "名称"
+    title: String
+    "表结构"
+    customs: [Custom]
+}
+
+input CategoryInput {
+    id: ID
+    "名称"
+    title: String
+}

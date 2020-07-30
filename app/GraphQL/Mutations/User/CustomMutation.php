@@ -93,6 +93,7 @@ class CustomMutation
             $custom = new Custom();
             $custom->project_id = $projectId;
         }
+        $custom->category_id = array_get($args, 'category_id');
         $custom->name = $name;
         $custom->plural_name = $pluralName;
         $custom->zh_name = $zhName;
