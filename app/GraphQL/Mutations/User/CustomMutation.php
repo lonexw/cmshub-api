@@ -99,6 +99,9 @@ class CustomMutation
         $custom->zh_name = $zhName;
         $custom->description = arrayGet($args, 'description');
         $custom->save();
+        // 修改表结构文件
+        $schemaService = new SchemaService();
+        $schemaService->generateRoute($custom);
         return $custom;
     }
 }
