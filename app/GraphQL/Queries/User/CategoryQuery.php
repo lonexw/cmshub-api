@@ -6,6 +6,7 @@ use App\GraphQL\BaseQuery;
 use App\Models\Category;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Expression;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class CategoryQuery extends BaseQuery
@@ -20,6 +21,11 @@ class CategoryQuery extends BaseQuery
                 }
             },
         ];
+    }
+
+    protected function order()
+    {
+        return [new Expression('sequence asc')];
     }
 
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)

@@ -69,4 +69,24 @@ class CategoryMutation
         $category->save();
         return $category;
     }
+
+    public function updateSequence($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
+    {
+        $projectId = $context->request->this_project_id;
+        // 项目分类
+        $categories = Category::query()
+            ->where('project_id', $projectId)
+            ->get();
+        // 排序数据
+        $data = collect($args['data']);
+        foreach ($categories as $category) {
+            $item = $data->where('id', $category->id)
+                ->first();
+            if ($item) {
+                $category->sequence = $item['sequence'];
+                $category->save();
+            }
+        }
+        return true;
+    }
 }

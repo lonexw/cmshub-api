@@ -12,6 +12,9 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
 
     "更新表分类"
     userUpdateCategory(data: CategoryInput!): Category @field(resolver: "CategoryMutation@update")
+
+    "更新表分类顺序"
+     userUpdateSequenceCategory(data: [CategorySequenceInput]!): Boolean @field(resolver: "CategoryMutation@updateSequence")
 }
 
 type Category {
@@ -26,4 +29,10 @@ input CategoryInput {
     id: ID
     "名称"
     title: String
+}
+
+input CategorySequenceInput {
+    id: ID
+    "顺序"
+    sequence: Int
 }
