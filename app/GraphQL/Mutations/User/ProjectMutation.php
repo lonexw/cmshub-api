@@ -30,12 +30,20 @@ class ProjectMutation
         $project->url = $url;
         $project->description = arrayGet($args, 'description') ?? '';
         $project->save();
+
+        // 添加项目表结构分类
+        $category = new \App\Models\Category();
+        $category->project_id = $project->id;
+        $category->title = '默认';
+        $category->save();
+
         $custom = new Custom();
         $custom->project_id = $project->id;
         $custom->name = Custom::TABLE_ASSET_NAME;
         $custom->plural_name = 'Assets';
         $custom->zh_name = '附件表';
         $custom->description = '存放图片、文件、视频等';
+        $custom->category_id = $category->id;
         $custom->save();
 
         $field = new Field();
@@ -102,12 +110,6 @@ class ProjectMutation
         $field->is_multiple = false;
         $field->is_hide = false;
         $field->save();
-
-        // 添加项目表结构分类
-        $category = new \App\Models\Category();
-        $category->project_id = $project->id;
-        $category->title = '默认';
-        $category->save();
 
         $schemaService = new SchemaService();
         $schemaService->generateRoute($custom);
