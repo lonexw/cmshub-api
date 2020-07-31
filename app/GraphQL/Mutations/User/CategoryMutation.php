@@ -42,6 +42,14 @@ class CategoryMutation
         if ($validator->fails()) {
             throw new GraphQLException($validator->errors()->first());
         }
+        if ($id) {
+            $category = Category::query()
+                ->where('project_id', $projectId)
+                ->find($id);
+            if (!$category) {
+                throw new GraphQLException("分类不存在");
+            }
+        }
         $title = array_get($args, 'title');
         $query = Category::query()
             ->where('project_id', $projectId)
@@ -51,9 +59,9 @@ class CategoryMutation
         }
         $categoryFind = $query->first();
         if ($categoryFind) {
-            throw new GraphQLException("表名名称已存在，请修改");
+            throw new GraphQLException("分类名称已存在，请修改");
         }
-        if (!isset($categoryFind)) {
+        if (!isset($category)) {
             $category = new Category();
             $category->project_id = $projectId;
         }
