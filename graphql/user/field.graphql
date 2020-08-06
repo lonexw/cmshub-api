@@ -45,11 +45,13 @@ type Field {
     "模型关联表ID"
     reference_custom_id: Int
     "模型关联表"
-    reference_custom: Custom
+    referenceCustom: Custom @belongsTo
     "模型关联字段ID"
     reference_field_id: Int
     "模型关联字段"
-    reference_field: Field
+    referenceField: Field @belongsTo
+    "拥有关联模型字段"
+    hasReferenceField: Field @hasOne
 }
 
 enum FieldType {

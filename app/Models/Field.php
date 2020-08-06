@@ -37,4 +37,14 @@ class Field extends BaseModel
     {
         return $this->belongsTo(Custom::class);
     }
+
+    public function referenceField()
+    {
+        return $this->belongsTo(Field::class);
+    }
+
+    public function hasReferenceField()
+    {
+        return $this->hasOne(Field::class, 'reference_field_id');
+    }
 }
