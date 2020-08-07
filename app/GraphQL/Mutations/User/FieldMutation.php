@@ -119,7 +119,7 @@ class FieldMutation
         $type = $args['type'];
         $referenceCustomId = arrayGet($args, 'reference_custom_id');
         $referenceField = arrayGet($args, 'reference_field');
-        if ($type == Field::TYPE_REFERENCE) {
+        if ($type == Field::TYPE_REFERENCE && !$id) {
             // 关联模型类型的字段需要判断是否输入反向关联的数据
             if (!$referenceCustomId) {
                 throw new GraphQLException('请输入关联表ID');
