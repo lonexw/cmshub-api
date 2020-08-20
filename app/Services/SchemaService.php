@@ -47,6 +47,9 @@ type Mutation
         $projectId = $custom->project_id;
         $custDir = base_path($this->custPath);
         $projectDir = $custDir . '/' . $projectId;
+        if (file_exists($projectDir)) {
+            $this->delDirAndFile($projectDir);
+        }
         $custPath = $projectDir . '/' . $custom->name . '.graphql';
         if (file_exists($custPath)) {
             unlink($custDir);
