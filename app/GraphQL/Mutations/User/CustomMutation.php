@@ -40,8 +40,8 @@ class CustomMutation
         }
         $schemaService = new SchemaService();
         $schemaService->deleteCustomRoute($custom);
-        $custom->delete();
         Field::where('custom_id', $custom->id)->delete();
+        $custom->delete();
         return true;
     }
 
