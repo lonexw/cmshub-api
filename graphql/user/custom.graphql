@@ -34,8 +34,6 @@ type Custom {
     category_id: Int
     "关联项目ID"
     project_id: Int
-    "是否多语言"
-    is_mult_language: Boolean
     project: Project
 }
 
@@ -64,6 +62,4 @@ input CustomInput {
     description: String
     "分类ID"
     category_id: Int!
-    "是否多语言"
-    is_mult_language: Boolean
 }

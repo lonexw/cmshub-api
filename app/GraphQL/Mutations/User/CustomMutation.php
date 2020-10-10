@@ -98,7 +98,6 @@ class CustomMutation
         $custom->plural_name = $pluralName;
         $custom->zh_name = $zhName;
         $custom->description = arrayGet($args, 'description');
-        $custom->is_mult_language = arrayGet($args, 'is_mult_language');
         $custom->save();
         // 修改表结构文件
         $schemaService = new SchemaService();
