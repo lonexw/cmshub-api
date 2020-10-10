@@ -1,0 +1,41 @@
+extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Queries\\User") {
+    "获取所有语言"
+    userAllLanguages: [Language!]! @getlist(resolver: "LanguageQuery@allIndex")
+     "获取该项目语言"
+    userLanguages: [ProjectLanguage!]! @getlist(resolver: "LanguageQuery@index")
+}
+
+extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {
+    "选择语言"
+    userCreateLanguage(data: LanguageInput!): ProjectLanguage @field(resolver: "LanguageMutation@create")
+
+    "删除语言"
+    userDeleteLanguage(id: Int!): Boolean @field(resolver: "LanguageMutation@destroy")
+}
+
+type Language {
+    id: ID
+    "名称"
+    name: String
+    "code"
+    code: String
+    "是否默认"
+    is_default: Int
+
+}
+
+type ProjectLanguage {
+    id: ID
+    "项目id"
+    project_id: Int
+    "语言id"
+    language_id: Int
+    language: Language
+    "code"
+    code: String
+}
+
+input LanguageInput {
+    "语言id"
+    language_id: Int
+}

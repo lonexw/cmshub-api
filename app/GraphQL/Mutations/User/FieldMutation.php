@@ -185,6 +185,7 @@ class FieldMutation
         $field->is_required = arrayGet($args, 'is_required') ?? false;
         $field->is_unique = arrayGet($args, 'is_unique') ?? false;
         $field->is_multiple = arrayGet($args, 'is_multiple') ?? false;
+        $field->is_mult_language = arrayGet($args, 'is_mult_language') ?? false;
         $field->is_hide = arrayGet($args, 'is_hide') ?? false;
         if ($type == Field::TYPE_REFERENCE && !$id) {
             // 模型关联类型要保存关联的表ID
@@ -205,6 +206,7 @@ class FieldMutation
             $fieldReference->is_required = false;
             $fieldReference->is_unique = false;
             $fieldReference->is_multiple = arrayGet($referenceField, 'is_multiple') ?? false;
+            $fieldReference->is_mult_language = arrayGet($referenceField, 'is_mult_language') ?? false;
             $fieldReference->is_hide = false;
             $fieldReference->save();
 

@@ -52,6 +52,8 @@ type Field {
     referenceField: Field @belongsTo
     "拥有关联模型字段"
     hasReferenceField: Field @hasOne
+    "是否多语言"
+    is_mult_language: Boolean
 }
 
 enum FieldType {
@@ -110,6 +112,8 @@ input FieldInput {
     reference_custom_id: Int
     "反向关联字段信息"
     reference_field: ReferenceFieldInput
+    "是否多语言"
+    is_mult_language: Boolean
 }
 
 input ReferenceFieldInput {
@@ -121,4 +125,6 @@ input ReferenceFieldInput {
     description: String
     "是否数组"
     is_multiple: Boolean
+    "是否多语言"
+    is_mult_language: Boolean
 }
