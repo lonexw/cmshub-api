@@ -6,6 +6,8 @@ use App\Exceptions\GraphQLException;
 use App\Models\Custom;
 use App\Models\Field;
 use App\Models\Item;
+use App\Models\ItemTranslate;
+use App\Models\ProjectLanguage;
 use App\Models\Token;
 use GraphQL\Type\Definition\ResolveInfo;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
@@ -94,6 +96,7 @@ class ItemMutation
         $id = arrayGet($args, 'id');
         $userName = $resolveInfo->fieldName;
         $name = substr($userName, 10);
+        $translate = arrayGet($args, 'translate');
         $custom = Custom::with('fields')
             ->where('project_id', $projectId)
             ->where('name', $name)
@@ -109,11 +112,29 @@ class ItemMutation
             if (!$item) {
                 throw new GraphQLException("数据不存在");
             }
+            $itemTranslate = ItemTranslate::where('project_id', $projectId)
+                ->find($id);
+            if (!$itemTranslate) {
+                throw new GraphQLException("数据不存在");
+            }
+        }
+        $languageId = 0;
+        $code = '';
+        $projectLanguage = ProjectLanguage::with('language')->where('project_id', $projectId)->first();
+        if ($translate && $projectLanguage) {
+            $language = $projectLanguage->language;
+            $languageId = $projectLanguage->language_id;
+            $code = $language->code;
         }
         if (!isset($item)) {
             $item = new Item();
             $item->project_id = $projectId;
             $item->custom_id = $customId;
+        }
+        if (!isset($itemTranslate)) {
+            $itemTranslate = new ItemTranslate();
+            $itemTranslate->project_id = $projectId;
+            $itemTranslate->custom_id = $customId;
         }
         $fields = Field::where('custom_id', $customId)
             ->get();
@@ -150,6 +171,11 @@ class ItemMutation
         $item->status = $status;
         $item->content = $content;
         $item->save();
+        $itemTranslate->status = $status;
+        $itemTranslate->content = $translate;
+        $itemTranslate->language_id = $languageId;
+        $itemTranslate->code = $code;
+        $itemTranslate->save();
         foreach ($content as $field => $value) {
             $item[$field] = $value;
         }
