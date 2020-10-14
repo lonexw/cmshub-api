@@ -110,13 +110,9 @@ class ItemMutation
             $item = Item::where('project_id', $projectId)
                 ->find($id);
             if (!$item) {
-                throw new GraphQLException("数据不存在");
+                throw new GraphQLException("item数据不存在");
             }
-            $itemTranslate = ItemTranslate::where('project_id', $projectId)
-                ->find($id);
-            if (!$itemTranslate) {
-                throw new GraphQLException("数据不存在");
-            }
+            $itemTranslate = ItemTranslate::where('project_id', $projectId)->where('item_id', $id)->first();
         }
         $languageId = 0;
         $code = '';
@@ -175,6 +171,7 @@ class ItemMutation
         $itemTranslate->content = $translate;
         $itemTranslate->language_id = $languageId;
         $itemTranslate->code = $code;
+        $itemTranslate->item_id = $item->id;
         $itemTranslate->save();
         foreach ($content as $field => $value) {
             $item[$field] = $value;

@@ -8,6 +8,7 @@ use App\GraphQL\BaseQuery;
 use App\Models\Custom;
 use App\Models\Field;
 use App\Models\Item;
+use App\Models\ItemTranslate;
 use App\Models\Token;
 use GraphQL\Type\Definition\ResolveInfo;
 use Illuminate\Database\Eloquent\Builder;
@@ -104,11 +105,20 @@ class ItemQuery extends BaseQuery
         $args['this_project_id'] = $projectId;
         $args['this_fields'] = $custom->fields;
         $items = Item::getList($this->getConditions($args));
+        $itemTranslates = ItemTranslate::getList($this->getConditions($args));
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
         foreach ($items as $item) {
             $content = $item->content;
+            foreach ($content as $field => $value) {
+                $item[$field] = $value;
+                $this->withModel($fields, $field, $item, $asset);
+            }
+            unset($item->content);
+        }
+        foreach ($itemTranslates as $itemTranslate) {
+            $content = $itemTranslate->content;
             foreach ($content as $field => $value) {
                 $item[$field] = $value;
                 $this->withModel($fields, $field, $item, $asset);
