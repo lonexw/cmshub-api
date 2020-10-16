@@ -6,6 +6,10 @@ extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (fie
 
     "查看指定自定义表"
     userField(id: Int!): Field @field(resolver: "FieldQuery@show")
+    "多语言字段列表"
+    userTranslateFields(
+      paginator: PaginatorInput,
+      more: FieldPaginatorInput): [Field!]! @getlist(resolver: "FieldQuery@translateIndex")
 }
 
 extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {

@@ -23,6 +23,10 @@ class FieldQuery extends BaseQuery
                 if ($customId) {
                     $q->where('custom_id', $customId);
                 }
+                $isMultLanguage = $this->getInputArgs('is_mult_language');
+                if ($isMultLanguage) {
+                    $q->where('is_mult_language', $isMultLanguage);
+                }
             },
         ];
     }
@@ -41,5 +45,14 @@ class FieldQuery extends BaseQuery
         $filed = Field::where('project_id', $projectId)
             ->find($args['id']);
         return $filed;
+    }
+
+    public function translateIndex($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
+    {
+        $projectId = $context->request->this_project_id;
+        $args['this_project_id'] = $projectId;
+        $args['is_mult_language'] = 1;
+        $translateFields = Field::getList($this->getConditions($args), ['project', 'custom']);
+        return $translateFields;
     }
 }

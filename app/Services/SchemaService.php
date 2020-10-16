@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Custom;
 use App\Models\Field;
 use App\Models\Item;
+use App\Models\ItemTranslate;
 
 class SchemaService
 {
@@ -93,6 +94,8 @@ type Mutation
         $name = $custom->name;
         $pluralName = $custom->plural_name;
         $zhName = $custom->zh_name;
+        $translateFields = Field::where('custom_id', $custom->id)->where('is_mult_language', 1)
+            ->get();
         $content = '
 extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\\\GraphQL\\\\Queries\\\\User") {
     "' . $zhName . '列表"
@@ -101,9 +104,17 @@ extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (fie
         more: ' . $name . 'PaginatorInput): [' . $name . '!]! @getlist(resolver: "ItemQuery@index")
 
     "查看指定' . $zhName . '"
-    user' . $name . '(id: Int!): ' . $name . ' @field(resolver: "ItemQuery@show")
-}
-
+    user' . $name . '(id: Int!): ' . $name . ' @field(resolver: "ItemQuery@show")';
+    if (count($translateFields) > 0) {
+        $content .= '
+         "查看' . $zhName . '多语言表"
+    user' . $name . 'ItemTranslate(id: Int!): translate' . $name . ' @field(resolver: "ItemTranslateQuery@show")
+}';
+    } else {
+        $content .= '
+}';
+    }
+     $content .= '
 extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\\\GraphQL\\\\Mutations\\\\User") {
     "新增' . $zhName . '数据"
     userCreate' . $name . '(data: ' . $name . 'Input!): ' . $name . ' @field(resolver: "ItemMutation@create")
@@ -123,9 +134,54 @@ extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (
         $fields = Field::where('custom_id', $custom->id)
             ->get();
         $fieldContent = 'id: ID';
+        $translateContent = '';
         $referenceFieldIds = '';
         $assetsField = '';
         $referenceField = '';
+        foreach ($translateFields as $translateField) {
+            if ($translateField->is_multiple) {
+                $translateContent = $translateContent . '
+    "' . $translateField->zh_name . '"' . '
+    ' . $translateField->name . ': [String]';
+            } else {
+                $translateContent = $translateContent . '
+    "' . $translateField->zh_name . '"' . '
+    ' . $translateField->name . ': String';
+            }
+
+            if ($translateField->type == Field::TYPE_ASSET) {
+                $assetsField .= '
+    "' . $translateField->zh_name . '对应附件模型"';
+                // 附件单独处理
+                if ($translateField->is_multiple) {
+                    $assetsField .= '
+    ' . $translateField->name . 'Asset: [' . Item::NAME_ASSET . ']';
+                } else {
+                    $assetsField .= '
+    ' . $translateField->name . 'Asset: ' . Item::NAME_ASSET . '';
+                }
+                $referenceFieldIds = $referenceFieldIds . '
+    "' . $translateField->zh_name . '批量查询"' . '
+    ' . $translateField->name . 'Ids: [String]';
+            } else if ($translateField->type == Field::TYPE_REFERENCE) {
+                $referenceCustom = Custom::find($translateField->reference_custom_id);
+                if ($referenceCustom) {
+                    // 关联模型的类型
+                    $referenceField .= '
+    "' . $translateField->zh_name . '对应关联模型"';
+                    if ($translateField->is_multiple) {
+                        $referenceField .= '
+    ' . $translateField->name . Item::NAME_REFERENCE . ': [' . $translateField->name . ']';
+                    } else {
+                        $referenceField .= '
+    ' . $translateField->name . Item::NAME_REFERENCE . ': ' . $translateField->name;
+                    }
+                }
+                $referenceFieldIds = $referenceFieldIds . '
+    "' . $translateField->zh_name . '批量查询"' . '
+    ' . $translateField->name . 'Ids: [String]';
+            }
+        }
         foreach ($fields as $field) {
             if ($field->is_multiple) {
                 $fieldContent = $fieldContent . '
@@ -194,8 +250,20 @@ type ' . $name . ' {';
         $typeContent .= '
     ' . $fieldContent . '
 }';
+        $translate = '
+type translate' . $name . ' {';
+        $translate .= $translateContent. '
+}';
 
+       $translateInput = '
+input translate' . $name . 'Input {';
+        $translateInput .=  $translateContent. '
+}';
         $content .= $typeContent;
+        if (count($translateFields) > 0) {
+            $content .= $translate;
+            $content .= $translateInput;
+        }
         $content .= '
 input ' . $name . 'PaginatorInput {
     "id数组"
@@ -209,6 +277,7 @@ input ' . $name . 'PaginatorInput {
 }
 
 input ' . $name . 'Input {
+    translate: translate' .  $name . 'Input
     ' . $fieldContent . '
 }';
         return $content;
