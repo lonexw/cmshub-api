@@ -106,31 +106,27 @@ class ItemMutation
         }
         $this->hasPermission($context, $custom);
         $customId = $custom->id;
+        $code = arrayGet($args, 'code');
         if ($id) {
             $item = Item::where('project_id', $projectId)
                 ->find($id);
             if (!$item) {
                 throw new GraphQLException("item数据不存在");
             }
-            $itemTranslate = ItemTranslate::where('project_id', $projectId)->where('item_id', $id)->first();
+            $itemTranslate = ItemTranslate::where('project_id', $projectId)->where('item_id', $id)->where('code', $code)->first();
         }
         $languageId = 0;
-        $code = '';
-        $projectLanguage = ProjectLanguage::with('language')->where('project_id', $projectId)->first();
-        if ($translate && $projectLanguage) {
-            $language = $projectLanguage->language;
-            $languageId = $projectLanguage->language_id;
-            $code = $language->code;
-        }
         if (!isset($item)) {
             $item = new Item();
             $item->project_id = $projectId;
             $item->custom_id = $customId;
         }
         if (!isset($itemTranslate)) {
-            $itemTranslate = new ItemTranslate();
-            $itemTranslate->project_id = $projectId;
-            $itemTranslate->custom_id = $customId;
+            if ($translate !== null && $code !== null) {
+                $itemTranslate = new ItemTranslate();
+                $itemTranslate->project_id = $projectId;
+                $itemTranslate->custom_id = $customId;
+            }
         }
         $fields = Field::where('custom_id', $customId)
             ->get();
@@ -167,12 +163,14 @@ class ItemMutation
         $item->status = $status;
         $item->content = $content;
         $item->save();
-        $itemTranslate->status = $status;
-        $itemTranslate->content = $translate;
-        $itemTranslate->language_id = $languageId;
-        $itemTranslate->code = $code;
-        $itemTranslate->item_id = $item->id;
-        $itemTranslate->save();
+        if (isset($itemTranslate)) {
+            $itemTranslate->status = $status;
+            $itemTranslate->content = $translate;
+            $itemTranslate->language_id = $languageId;
+            $itemTranslate->code = $code;
+            $itemTranslate->item_id = $item->id;
+            $itemTranslate->save();
+        }
         foreach ($content as $field => $value) {
             $item[$field] = $value;
         }

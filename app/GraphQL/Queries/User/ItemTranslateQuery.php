@@ -14,8 +14,9 @@ class ItemTranslateQuery extends BaseQuery
     public function show($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $id = $args['id'];
+        $code = $args['code'];
         $content = '';
-        $itemTranslate = ItemTranslate::where('item_id', $id)->first();
+        $itemTranslate = ItemTranslate::where('item_id', $id)->where('code', $code)->first();
         if ($itemTranslate) {
             $content = $itemTranslate->content;
         }

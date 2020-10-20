@@ -3,6 +3,8 @@ extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (fie
     userAllLanguages: [Language!]! @getlist(resolver: "LanguageQuery@allIndex")
      "获取该项目语言"
     userLanguages: [ProjectLanguage!]! @getlist(resolver: "LanguageQuery@index")
+   "查看编辑时显示的语言"
+   userLanguageCode(id: Int!): String @field(resolver: "LanguageQuery@getCheckCode")
 }
 
 extend type Mutation @middleware(checks: ["api.auth.user.project"]) @namespace (field: "App\\GraphQL\\Mutations\\User") {

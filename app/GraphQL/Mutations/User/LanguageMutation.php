@@ -60,6 +60,7 @@ class LanguageMutation
         $language = new ProjectLanguage();
         $language->project_id = $projectId;
         $language->language_id = $languageId;
+        $language->code = $cLanguage->code;
         $language->save();
         return $language;
     }

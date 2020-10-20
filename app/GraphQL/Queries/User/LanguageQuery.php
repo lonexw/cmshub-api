@@ -3,6 +3,8 @@
 namespace App\GraphQL\Queries\User;
 
 use App\GraphQL\BaseQuery;;
+
+use App\Models\ItemTranslate;
 use App\Models\Language;
 use App\Models\ProjectLanguage;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -35,5 +37,16 @@ class LanguageQuery extends BaseQuery
         $args['this_project_id'] = $projectId;
         $projectLanguages = ProjectLanguage::getList($this->getConditions($args));
         return $projectLanguages;
+    }
+
+    public function getCheckCode($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
+    {
+        $id = $args['id'];
+        $code = '';
+        $itemTranslate = ItemTranslate::where('item_id', $id)->first();
+        if ($itemTranslate) {
+            $code = $itemTranslate->code;
+        }
+        return $code;
     }
 }

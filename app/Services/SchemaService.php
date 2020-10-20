@@ -108,7 +108,7 @@ extend type Query @middleware(checks: ["api.auth.user.project"]) @namespace (fie
     if (count($translateFields) > 0) {
         $content .= '
          "查看' . $zhName . '多语言表"
-    user' . $name . 'ItemTranslate(id: Int!): translate' . $name . ' @field(resolver: "ItemTranslateQuery@show")
+    user' . $name . 'ItemTranslate(id: Int!, code: String): translate' . $name . ' @field(resolver: "ItemTranslateQuery@show")
 }';
     } else {
         $content .= '
@@ -277,6 +277,8 @@ input ' . $name . 'PaginatorInput {
 }
 
 input ' . $name . 'Input {
+    "语言标识"
+    code: String
     translate: translate' .  $name . 'Input
     ' . $fieldContent . '
 }';
