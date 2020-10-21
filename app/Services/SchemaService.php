@@ -274,14 +274,23 @@ input ' . $name . 'PaginatorInput {
     end_at: DateTime
     ' . $fieldContent . '
     ' . $referenceFieldIds . '
-}
-
+}';
+if (count($translateFields) > 0) {
+    $content .= '
 input ' . $name . 'Input {
     "语言标识"
     code: String
     translate: translate' .  $name . 'Input
     ' . $fieldContent . '
 }';
+} else {
+    $content .= '
+input ' . $name . 'Input {
+    "语言标识"
+    code: String
+    ' . $fieldContent . '
+}';
+}
         return $content;
     }
 }

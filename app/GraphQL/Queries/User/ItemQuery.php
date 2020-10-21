@@ -90,9 +90,10 @@ class ItemQuery extends BaseQuery
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
+        $lang = $context->request->lang;
         $userPluralName = $resolveInfo->fieldName;
         $pluralName = substr($userPluralName, 4);
-        $custom = Custom::with('fields.referenceCustom')
+        $custom = Custom::with(['fields.referenceCustom', 'translateFields.referenceCustom'])
             ->where('project_id', $projectId)
             ->where('plural_name', $pluralName)
             ->first();
@@ -103,8 +104,15 @@ class ItemQuery extends BaseQuery
         $fields = $custom->fields;
         $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
-        $args['this_fields'] = $custom->fields;
-        $items = Item::getList($this->getConditions($args));
+        if ($lang) {
+            $args['this_fields'] = $custom->translateFields;
+            \Log::info('===========args' . json_encode($args));
+            $args['lang'] = $lang;
+            $items = ItemTranslate::getList($this->getConditions($args));
+        } else {
+            $args['this_fields'] = $custom->fields;
+            $items = Item::getList($this->getConditions($args));
+        }
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
@@ -196,9 +204,10 @@ class ItemQuery extends BaseQuery
     public function show($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
+        $lang = $context->request->lang;
         $userName = $resolveInfo->fieldName;
         $name = substr($userName, 4);
-        $custom = Custom::with('fields')
+        $custom = Custom::with(['translateFields','fields'])
             ->where('project_id', $projectId)
             ->where('name', $name)
             ->first();
@@ -206,10 +215,16 @@ class ItemQuery extends BaseQuery
             throw new GraphQLException("表结构不存在");
         }
         $this->hasPermission($context, $custom);
-        $fields = $custom->fields;
 
-        $item = Item::where('project_id', $projectId)
-            ->find($args['id']);
+
+        if ($lang) {
+            $fields = $custom->translateFields;
+            $item = ItemTranslate::where('project_id', $projectId)->where('code', $lang)->where('item_id',$args['id'] )->first();
+        } else {
+            $fields = $custom->fields;
+            $item = Item::where('project_id', $projectId)
+                ->find($args['id']);
+        }
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();

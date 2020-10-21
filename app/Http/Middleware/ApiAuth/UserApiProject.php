@@ -23,6 +23,10 @@ class UserApiProject extends BaseMiddleware
         if (empty($projectId)) {
             throw new \App\Exceptions\GraphQLException("项目不存在");
         }
+        $lang = $request->header('lang');
+        if ($lang) {
+            $request->lang = $lang;
+        }
         // 有token传入的判断token是否存在，到控制器里判断有没有具体的权限
         $tokenStr = $request->header('token');
         if ($tokenStr) {

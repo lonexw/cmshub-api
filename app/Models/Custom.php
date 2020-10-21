@@ -16,4 +16,9 @@ class Custom extends BaseModel
     {
         return $this->hasMany(Field::class);
     }
+
+    public function translateFields()
+    {
+        return $this->hasMany(Field::class)->where('is_mult_language', 1);
+    }
 }
