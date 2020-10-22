@@ -26,4 +26,9 @@ class ItemTranslate extends BaseModel
     {
         return $this->belongsTo(Custom::class);
     }
+
+    public function item()
+    {
+        return $this->belongsTo(Item::class);
+    }
 }

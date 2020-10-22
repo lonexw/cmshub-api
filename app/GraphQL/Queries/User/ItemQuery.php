@@ -110,7 +110,6 @@ class ItemQuery extends BaseQuery
         if ($lang) {
             $fields = $custom->translateFields;
             $args['this_fields'] = $custom->translateFields;
-            \Log::info('===========args' . json_encode($args));
             $args['lang'] = $lang;
             $items = ItemTranslate::getList($this->getConditions($args));
         } else {
@@ -121,14 +120,36 @@ class ItemQuery extends BaseQuery
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
-        foreach ($items as $item) {
-            $content = $item->content;
-            foreach ($content as $field => $value) {
-                $item[$field] = $value;
-                $this->withModel($fields, $field, $item, $asset);
+        if ($lang) {
+            foreach ($items as $item) {
+                $content = $item->content;
+                $cItem = Item::find($item->item_id);
+                if ($cItem) {
+                    $cContent = $cItem->content;
+                    $mergedContent = (object) array_merge((array) $cContent, (array) $content);
+                    foreach ($mergedContent as $field => $value) {
+                        $item[$field] = $value;
+                        $this->withModel($fields, $field, $item, $asset);
+                    }
+                }  else {
+                    foreach ($content as $field => $value) {
+                        $item[$field] = $value;
+                        $this->withModel($fields, $field, $item, $asset);
+                    }
+                }
+                unset($item->content);
             }
-            unset($item->content);
+        } else {
+            foreach ($items as $item) {
+                $content = $item->content;
+                foreach ($content as $field => $value) {
+                    $item[$field] = $value;
+                    $this->withModel($fields, $field, $item, $asset);
+                }
+                unset($item->content);
+            }
         }
+        \Log::info('===========items' . json_encode($items));
         return $items;
     }
 
