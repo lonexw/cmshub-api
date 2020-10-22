@@ -57,7 +57,7 @@ class ItemTranslateQuery extends BaseQuery
                 if ($arg != 'this_project_id' && $arg != 'custom_id' && $arg != 'status'
                     && $arg != 'ids' && $arg != 'id' && $arg != 'begin_at'
                     && $arg != 'end_at' && $arg != 'directive' && $arg != 'this_fields'
-                    && $arg != 'paginator') {
+                    && $arg != 'paginator' && $arg != 'lang') {
                     $isId = false;
                     $needle = 'Ids';
                     $temp = explode($needle, $arg);

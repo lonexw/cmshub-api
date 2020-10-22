@@ -48,6 +48,10 @@ class ItemQuery extends BaseQuery
             if (isset($endAt)) {
                 $q->where('created_at', '<=', $endAt);
             }
+            $lang = $this->getInputArgs('lang');
+            if ($lang) {
+                $q->where('code', $lang);
+            }
         };
         $other = function (Builder $q) {
             $args = $this->getInputArgs();
@@ -56,7 +60,7 @@ class ItemQuery extends BaseQuery
                 if ($arg != 'this_project_id' && $arg != 'custom_id' && $arg != 'status'
                     && $arg != 'ids' && $arg != 'id' && $arg != 'begin_at'
                     && $arg != 'end_at' && $arg != 'directive' && $arg != 'this_fields'
-                    && $arg != 'paginator') {
+                    && $arg != 'paginator' && $arg != 'lang') {
                     $isId = false;
                     $needle = 'Ids';
                     $temp = explode($needle, $arg);
@@ -101,15 +105,16 @@ class ItemQuery extends BaseQuery
             throw new GraphQLException("表结构不存在");
         }
         $this->hasPermission($context, $custom);
-        $fields = $custom->fields;
         $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
         if ($lang) {
+            $fields = $custom->translateFields;
             $args['this_fields'] = $custom->translateFields;
             \Log::info('===========args' . json_encode($args));
             $args['lang'] = $lang;
             $items = ItemTranslate::getList($this->getConditions($args));
         } else {
+            $fields = $custom->fields;
             $args['this_fields'] = $custom->fields;
             $items = Item::getList($this->getConditions($args));
         }
