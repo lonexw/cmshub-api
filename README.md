@@ -59,3 +59,18 @@ api域名/api/upload-image 使用laravel的api接口，不使用graphql接口
 ```
 php artisan command:add_user
 ```
+##多语言设置
+1.执行数据库迁移
+```
+php artisan migrate
+```
+2.执行数据库填充
+```
+php artisan db:seed --class=LanguageSeeder
+```
+3.生成动态语句
+```
+php artisan command:update_cust_graphql
+```
+4.前端调用查询
+在原有的查询接口中，往headers里添加lang参数
