@@ -255,10 +255,19 @@ class ItemQuery extends BaseQuery
             ->where('name', 'asset')
             ->first();
         $content = $item->content;
-        foreach ($content as $field => $value) {
-            $item[$field] = $value;
-            // 返回关联附件、模型
-            $this->withModel($fields, $field, $item, $asset);
+        $cItem = Item::find($item->item_id);
+        if ($cItem) {
+            $cContent = $cItem->content;
+            $mergedContent = (object) array_merge((array) $cContent, (array) $content);
+            foreach ($mergedContent as $field => $value) {
+                $item[$field] = $value;
+                $this->withModel($fields, $field, $item, $asset);
+            }
+        }  else {
+            foreach ($content as $field => $value) {
+                $item[$field] = $value;
+                $this->withModel($fields, $field, $item, $asset);
+            }
         }
         unset($item->content);
         return $item;
