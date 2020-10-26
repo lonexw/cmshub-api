@@ -107,29 +107,29 @@ class ItemQuery extends BaseQuery
         $this->hasPermission($context, $custom);
         $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
-        if ($lang) {
-            $fields = $custom->translateFields;
-            $args['this_fields'] = $custom->translateFields;
-            $args['lang'] = $lang;
-            $items = ItemTranslate::getList($this->getConditions($args));
-        } else {
-            $fields = $custom->fields;
-            $args['this_fields'] = $custom->fields;
-            $items = Item::getList($this->getConditions($args));
-        }
+        $args['this_fields'] = $custom->fields;
+        $items = Item::getList($this->getConditions($args));
+        $fields = $custom->fields;
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
         if ($lang) {
             foreach ($items as $item) {
                 $content = $item->content;
-                $cItem = Item::find($item->item_id);
-                if ($cItem) {
-                    $cContent = $cItem->content;
-                    $mergedContent = (object) array_merge((array) $cContent, (array) $content);
-                    foreach ($mergedContent as $field => $value) {
-                        $item[$field] = $value;
-                        $this->withModel($fields, $field, $item, $asset);
+                $trItem = ItemTranslate::where('project_id', $projectId)->where('item_id', $item->item_id)->where('code', $lang)->first();
+                if ($trItem) {
+                    $trContent = $trItem->content;
+                    if ($trContent) {
+                        $mergedContent = (object) array_merge((array) $content, (array) $trContent);
+                        foreach ($mergedContent as $field => $value) {
+                            $item[$field] = $value;
+                            $this->withModel($fields, $field, $item, $asset);
+                        }
+                    } else {
+                        foreach ($content as $field => $value) {
+                            $item[$field] = $value;
+                            $this->withModel($fields, $field, $item, $asset);
+                        }
                     }
                 }  else {
                     foreach ($content as $field => $value) {
@@ -149,7 +149,6 @@ class ItemQuery extends BaseQuery
                 unset($item->content);
             }
         }
-        \Log::info('===========items' . json_encode($items));
         return $items;
     }
 
@@ -241,29 +240,37 @@ class ItemQuery extends BaseQuery
             throw new GraphQLException("表结构不存在");
         }
         $this->hasPermission($context, $custom);
-
-
-        if ($lang) {
-            $fields = $custom->translateFields;
-            $item = ItemTranslate::where('project_id', $projectId)->where('code', $lang)->where('item_id',$args['id'] )->first();
-        } else {
-            $fields = $custom->fields;
-            $item = Item::where('project_id', $projectId)
-                ->find($args['id']);
-        }
+        $fields = $custom->fields;
+        $item = Item::where('project_id', $projectId)
+            ->find($args['id']);
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
         $content = $item->content;
-        $cItem = Item::find($item->item_id);
-        if ($cItem) {
-            $cContent = $cItem->content;
-            $mergedContent = (object) array_merge((array) $cContent, (array) $content);
-            foreach ($mergedContent as $field => $value) {
-                $item[$field] = $value;
-                $this->withModel($fields, $field, $item, $asset);
+        if ($lang) {
+            $trItem = ItemTranslate::where('project_id', $projectId)->where('code', $lang)->where('item_id',$args['id'] )->first();
+            if ($trItem) {
+                $trContent = $trItem->content;
+                if ($trContent) {
+                    $mergedContent = (object) array_merge((array) $content, (array) $trContent);
+                    foreach ($mergedContent as $field => $value) {
+                        $item[$field] = $value;
+                        $this->withModel($fields, $field, $item, $asset);
+                    }
+                } else {
+                    foreach ($content as $field => $value) {
+                        $item[$field] = $value;
+                        $this->withModel($fields, $field, $item, $asset);
+                    }
+                }
             }
-        }  else {
+            else {
+                foreach ($content as $field => $value) {
+                    $item[$field] = $value;
+                    $this->withModel($fields, $field, $item, $asset);
+                }
+            }
+        } else {
             foreach ($content as $field => $value) {
                 $item[$field] = $value;
                 $this->withModel($fields, $field, $item, $asset);
