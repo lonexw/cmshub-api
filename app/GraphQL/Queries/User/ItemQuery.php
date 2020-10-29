@@ -116,7 +116,7 @@ class ItemQuery extends BaseQuery
         if ($lang) {
             foreach ($items as $item) {
                 $content = $item->content;
-                $trItem = ItemTranslate::where('project_id', $projectId)->where('item_id', $item->item_id)->where('code', $lang)->first();
+                $trItem = ItemTranslate::where('project_id', $projectId)->where('item_id', $item->id)->where('code', $lang)->first();
                 if ($trItem) {
                     $trContent = $trItem->content;
                     if ($trContent) {
