@@ -119,7 +119,7 @@ class ItemQuery extends BaseQuery
         return $items;
     }
 
-    function withModel($fields, $field, &$item, $asset, $lang)
+    function withModel($fields, $field, &$item, $asset, $lang, $flag = false)
     {
         $content = $item->content;
         $assetField = $fields->where('type', Field::TYPE_ASSET)
@@ -169,10 +169,21 @@ class ItemQuery extends BaseQuery
                     ->whereIn('id', $content[$referenceField->name])
                     ->get();
                 if (count($referenceModels) > 0) {
-                    $referenFields = $referenceModels[0]->custom->fields;
-                    foreach ($referenceModels as $referenceModel) {
-                        $this->handleItem($referenFields, $lang, $referenceModel->project_id, $referenceModel, $asset);
-                        $modelAll[] = $referenceModel;
+                    if (!$flag) {
+                        $referenFields = $referenceModels[0]->custom->fields;
+                        foreach ($referenceModels as $referenceModel) {
+                            $this->handleItem($referenFields, $lang, $referenceModel->project_id, $referenceModel, $asset, true);
+                            $modelAll[] = $referenceModel;
+                        }
+                    } else {
+                        foreach ($referenceModels as $referenceModel) {
+                            if ($referenceModel && $referenceModel->content) {
+                                foreach ($referenceModel->content as $fieldItem => $valueItem) {
+                                    $referenceModel[$fieldItem] = $valueItem;
+                                }
+                                $modelAll[] = $referenceModel;
+                            }
+                        }
                     }
                 }
             } else {
@@ -182,8 +193,14 @@ class ItemQuery extends BaseQuery
                     ->where('id', $content[$referenceField->name])
                     ->first();
                 if ($referenceModel && $referenceModel->content) {
-                    $referenFields = $referenceModel->custom->fields;
-                    $this->handleItem($referenFields, $lang, $referenceModel->project_id, $referenceModel, $asset);
+                    if (!$flag) {
+                        $referenFields = $referenceModel->custom->fields;
+                        $this->handleItem($referenFields, $lang, $referenceModel->project_id, $referenceModel, $asset, true);
+                    } else {
+                        foreach ($referenceModel->content as $fieldItem => $valueItem) {
+                            $referenceModel[$fieldItem] = $valueItem;
+                        }
+                    }
                     $modelAll = $referenceModel;
                 }
             }
@@ -219,7 +236,7 @@ class ItemQuery extends BaseQuery
         return $item;
     }
 
-    function handleItem($fields, $lang, $projectId, &$item, $asset)
+    function handleItem($fields, $lang, $projectId, &$item, $asset, $flag = false)
     {
         $content = $item->content;
         if ($lang) {
@@ -230,25 +247,25 @@ class ItemQuery extends BaseQuery
                     $mergedContent = (object) array_merge((array) $content, (array) $trContent);
                     foreach ($mergedContent as $field => $value) {
                         $item[$field] = $value;
-                        $this->withModel($fields, $field, $item, $asset, $lang);
+                        $this->withModel($fields, $field, $item, $asset, $lang, $flag);
                     }
                 } else {
                     foreach ($content as $field => $value) {
                         $item[$field] = $value;
-                        $this->withModel($fields, $field, $item, $asset, $lang);
+                        $this->withModel($fields, $field, $item, $asset, $lang, $flag);
                     }
                 }
             }
             else {
                 foreach ($content as $field => $value) {
                     $item[$field] = $value;
-                    $this->withModel($fields, $field, $item, $asset, $lang);
+                    $this->withModel($fields, $field, $item, $asset, $lang, $flag);
                 }
             }
         } else {
             foreach ($content as $field => $value) {
                 $item[$field] = $value;
-                $this->withModel($fields, $field, $item, $asset, $lang);
+                $this->withModel($fields, $field, $item, $asset, $lang, $flag);
             }
         }
         unset($item->content);
