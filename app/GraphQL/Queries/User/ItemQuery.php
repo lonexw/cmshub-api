@@ -113,46 +113,13 @@ class ItemQuery extends BaseQuery
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
-        if ($lang) {
-            foreach ($items as $item) {
-                $content = $item->content;
-                $trItem = ItemTranslate::where('project_id', $projectId)->where('item_id', $item->id)->where('code', $lang)->first();
-                if ($trItem) {
-                    $trContent = $trItem->content;
-                    if ($trContent) {
-                        $mergedContent = (object) array_merge((array) $content, (array) $trContent);
-                        foreach ($mergedContent as $field => $value) {
-                            $item[$field] = $value;
-                            $this->withModel($fields, $field, $item, $asset);
-                        }
-                    } else {
-                        foreach ($content as $field => $value) {
-                            $item[$field] = $value;
-                            $this->withModel($fields, $field, $item, $asset);
-                        }
-                    }
-                }  else {
-                    foreach ($content as $field => $value) {
-                        $item[$field] = $value;
-                        $this->withModel($fields, $field, $item, $asset);
-                    }
-                }
-                unset($item->content);
-            }
-        } else {
-            foreach ($items as $item) {
-                $content = $item->content;
-                foreach ($content as $field => $value) {
-                    $item[$field] = $value;
-                    $this->withModel($fields, $field, $item, $asset);
-                }
-                unset($item->content);
-            }
+        foreach ($items as $item) {
+            $this->handleItem($fields, $lang, $projectId, $item, $asset);
         }
         return $items;
     }
 
-    function withModel($fields, $field, &$item, $asset)
+    function withModel($fields, $field, &$item, $asset, $lang)
     {
         $content = $item->content;
         $assetField = $fields->where('type', Field::TYPE_ASSET)
@@ -201,23 +168,22 @@ class ItemQuery extends BaseQuery
                 $referenceModels = Item::where('custom_id', $referenceField->reference_custom_id)
                     ->whereIn('id', $content[$referenceField->name])
                     ->get();
-                foreach ($referenceModels as $referenceModel) {
-                    if ($referenceModel && $referenceModel->content) {
-                        foreach ($referenceModel->content as $fieldItem => $valueItem) {
-                            $referenceModel[$fieldItem] = $valueItem;
-                        }
+                if (count($referenceModels) > 0) {
+                    $referenFields = $referenceModels[0]->custom->fields;
+                    foreach ($referenceModels as $referenceModel) {
+                        $this->handleItem($referenFields, $lang, $referenceModel->project_id, $referenceModel, $asset);
                         $modelAll[] = $referenceModel;
                     }
                 }
             } else {
                 $modelAll = null;
+                // 找到关联模型对应的那一条内容
                 $referenceModel = Item::where('custom_id', $referenceField->reference_custom_id)
                     ->where('id', $content[$referenceField->name])
                     ->first();
                 if ($referenceModel && $referenceModel->content) {
-                    foreach ($referenceModel->content as $fieldItem => $valueItem) {
-                        $referenceModel[$fieldItem] = $valueItem;
-                    }
+                    $referenFields = $referenceModel->custom->fields;
+                    $this->handleItem($referenFields, $lang, $referenceModel->project_id, $referenceModel, $asset);
                     $modelAll = $referenceModel;
                 }
             }
@@ -243,41 +209,49 @@ class ItemQuery extends BaseQuery
         $fields = $custom->fields;
         $item = Item::where('project_id', $projectId)
             ->find($args['id']);
+        if (!$item) {
+            throw new GraphQLException("数据不存在");
+        }
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
             ->first();
+        $this->handleItem($fields, $lang, $projectId, $item, $asset);
+        return $item;
+    }
+
+    function handleItem($fields, $lang, $projectId, &$item, $asset)
+    {
         $content = $item->content;
         if ($lang) {
-            $trItem = ItemTranslate::where('project_id', $projectId)->where('code', $lang)->where('item_id',$args['id'] )->first();
+            $trItem = ItemTranslate::where('project_id', $projectId)->where('code', $lang)->where('item_id', $item->id)->first();
             if ($trItem) {
                 $trContent = $trItem->content;
                 if ($trContent) {
                     $mergedContent = (object) array_merge((array) $content, (array) $trContent);
                     foreach ($mergedContent as $field => $value) {
                         $item[$field] = $value;
-                        $this->withModel($fields, $field, $item, $asset);
+                        $this->withModel($fields, $field, $item, $asset, $lang);
                     }
                 } else {
                     foreach ($content as $field => $value) {
                         $item[$field] = $value;
-                        $this->withModel($fields, $field, $item, $asset);
+                        $this->withModel($fields, $field, $item, $asset, $lang);
                     }
                 }
             }
             else {
                 foreach ($content as $field => $value) {
                     $item[$field] = $value;
-                    $this->withModel($fields, $field, $item, $asset);
+                    $this->withModel($fields, $field, $item, $asset, $lang);
                 }
             }
         } else {
             foreach ($content as $field => $value) {
                 $item[$field] = $value;
-                $this->withModel($fields, $field, $item, $asset);
+                $this->withModel($fields, $field, $item, $asset, $lang);
             }
         }
         unset($item->content);
-        return $item;
     }
 
     function hasPermission($context, $custom)
