@@ -79,6 +79,16 @@ class CustomMutation
             if (!$custom) {
                 throw new GraphQLException("表不存在");
             }
+            $customs = Custom::where('project_id', $projectId)->where('id', '<>', $id)->get();
+            foreach ($customs as $customItem) {
+                if (strcasecmp($customItem->name, $name) == 0) {
+                    $customItem->delete();
+                    $schemaService = new SchemaService();
+                    $schemaService->deleteCustomRoute($customItem);
+                }
+            }
+            $schemaService = new SchemaService();
+            $schemaService->deleteCustomRoute($custom);
         }
         $query = Custom::where('project_id', $projectId)
             ->where('name', $name);
