@@ -108,7 +108,7 @@ class ItemQuery extends BaseQuery
         $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
         $args['this_fields'] = $custom->fields;
-        $items = Item::getList($this->getConditions($args));
+        $items = Item::getList($this->getConditions($args))->orderBy('id', 'desc');
         $fields = $custom->fields;
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
