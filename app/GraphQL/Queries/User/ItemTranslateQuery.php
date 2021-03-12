@@ -89,11 +89,6 @@ class ItemTranslateQuery extends BaseQuery
         return $wheres;
     }
 
-    protected function order()
-    {
-        return [new Expression('id desc')];
-    }
-
     public function show($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $id = $args['id'];

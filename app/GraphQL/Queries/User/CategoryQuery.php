@@ -25,7 +25,7 @@ class CategoryQuery extends BaseQuery
 
     protected function order()
     {
-        return [new Expression('id desc')];
+        return [new Expression('sequence asc')];
     }
 
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
