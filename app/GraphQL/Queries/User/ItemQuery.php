@@ -23,7 +23,7 @@ class ItemQuery extends BaseQuery
         $wheres[] = function (Builder $q) {
             $projectId = $this->getInputArgs('this_project_id');
             if ($projectId) {
-                $q->where('project_id', $projectId)->orderBy('id', 'desc');
+                $q->where('project_id', $projectId);
             }
             $customId = $this->getInputArgs('custom_id');
             if ($customId) {
@@ -90,6 +90,11 @@ class ItemQuery extends BaseQuery
         };
         $wheres[] = $other;
         return $wheres;
+    }
+
+    protected function order()
+    {
+        return [new Expression('created_at desc')];
     }
 
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
