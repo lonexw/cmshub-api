@@ -94,7 +94,7 @@ class ItemQuery extends BaseQuery
 
     protected function order()
     {
-        return ['-sort_order', '-id'];
+        return [new Expression('id desc')];
     }
 
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
