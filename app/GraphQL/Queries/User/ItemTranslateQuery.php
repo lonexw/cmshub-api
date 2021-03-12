@@ -8,6 +8,7 @@ use App\Models\Custom;
 use App\Models\Field;
 use App\Models\ItemTranslate;
 use GraphQL\Type\Definition\ResolveInfo;
+use Illuminate\Database\Query\Expression;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 class ItemTranslateQuery extends BaseQuery
@@ -86,6 +87,11 @@ class ItemTranslateQuery extends BaseQuery
         };
         $wheres[] = $other;
         return $wheres;
+    }
+
+    protected function order()
+    {
+        return [new Expression('id desc')];
     }
 
     public function show($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
