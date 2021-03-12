@@ -31,6 +31,11 @@ class FieldQuery extends BaseQuery
         ];
     }
 
+    protected function order()
+    {
+        return ['-id'];
+    }
+
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
