@@ -4,6 +4,7 @@
 namespace App\GraphQL\Queries\User;
 
 use App\Exceptions\GraphQLException;
+use Illuminate\Database\Query\Expression;
 use App\GraphQL\BaseQuery;
 use App\Models\Custom;
 use App\Models\Field;
@@ -91,6 +92,11 @@ class ItemQuery extends BaseQuery
         return $wheres;
     }
 
+    protected function order()
+    {
+        return [new Expression('id desc')];
+    }
+
     public function index($rootValue, array $args, GraphQLContext $context = null, ResolveInfo $resolveInfo)
     {
         $projectId = $context->request->this_project_id;
@@ -108,7 +114,7 @@ class ItemQuery extends BaseQuery
         $args['custom_id'] = $custom->id;
         $args['this_project_id'] = $projectId;
         $args['this_fields'] = $custom->fields;
-        $items = Item::getList($this->getConditions($args))->orderBy('id', 'desc');
+        $items = Item::getList($this->getConditions($args));
         $fields = $custom->fields;
         $asset = Custom::where('project_id', $projectId)
             ->where('name', 'asset')
